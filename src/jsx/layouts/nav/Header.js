@@ -43,7 +43,7 @@ const Header = ({ onLanguageChange, onCountryChange }) => {
   const [lang, setLang] = useState(localStorage.getItem(`_userLang`) || localStorage.getItem(`_lang`) || countryLanguageDefaults[country] || 'en');
 
   const countries = {
-    'Rwanda': 'https://flagcdn.com/w320/rw.png',
+    'Rwanda': '',
     // 'DRC': 'https://flagcdn.com/w320/cd.png',
     // 'Gabon': 'https://flagcdn.com/w320/ga.png',
     // 'Ghana': 'https://flagcdn.com/w320/gh.png',
@@ -158,9 +158,9 @@ const Header = ({ onLanguageChange, onCountryChange }) => {
             <ul className="navbar-nav header-right">
               <Dropdown as="li" className="nav-item header-profile">
                 <Dropdown.Toggle as="a" variant="" className="nav-link i-false c-pointer">								
-                  <img src={availableCountries[country]} width="20" alt={country + " flag"}/>
+                  {/* <img src={availableCountries[country]} width="20"/> */}
                   <div className="header-info">
-                    <span>{country}<i className="fa fa-caret-down ms-3" aria-hidden="true"></i></span>
+                    {/* <span>{country}<i className="fa fa-caret-down ms-3" aria-hidden="true"></i></span> */}
                   </div>
                 </Dropdown.Toggle>
                 <Dropdown.Menu align="right" className="mt-2">

@@ -26,7 +26,7 @@ const MineVolumeChart = ({ country, height = 220 }) => {
     // Special handling for Rwanda
     if (normalizedCountryq.toLowerCase() === 'rwanda') {
         // Randomly choose one of the three formats
-         normalizedCountryq ='.Rwanda';
+         normalizedCountryq ='Country';
         // normalizedCountry = formats[Math.floor(Math.random() * formats.length)];
     } else {
         // For other countries, remove leading/trailing dots and spaces

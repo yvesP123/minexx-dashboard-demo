@@ -36,7 +36,7 @@ const Exports = ({ language, country }) => {
         let result = country.trim();
         
         if (result.toLowerCase() === 'rwanda') {
-            return 'Test';
+            return 'Country';
         } else {
             return result.replace(/^\.+|\.+$/g, '');
         }

@@ -40,7 +40,7 @@ const Mines = ({ language,country }) => {
             // Special handling for Rwanda
             if (normalizedCountry.toLowerCase() === 'rwanda') {
                 // Randomly choose one of the three formats
-                 normalizedCountry ='Test';
+                 normalizedCountry ='Country';
                 // normalizedCountry = formats[Math.floor(Math.random() * formats.length)];
             } else {
                 // For other countries, remove leading/trailing dots and spaces

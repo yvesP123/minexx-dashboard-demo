@@ -120,7 +120,7 @@ function Home({ language, country }) {
     // Special handling for Rwanda
     if (normalizedCountrys.toLowerCase() === 'rwanda') {
         // Randomly choose one of the three formats
-         normalizedCountrys ='Test';
+         normalizedCountrys ='Country';
         // normalizedCountry = formats[Math.floor(Math.random() * formats.length)];
     } else {
         // For other countries, remove leading/trailing dots and spaces
@@ -186,7 +186,7 @@ function Home({ language, country }) {
     // Special handling for Rwanda
     if (normalizedCountry.toLowerCase() === 'rwanda') {
         // Randomly choose one of the three formats
-         normalizedCountry ='Test';
+         normalizedCountry ='Country';
         // normalizedCountry = formats[Math.floor(Math.random() * formats.length)];
     } else {
         // For other countries, remove leading/trailing dots and spaces
@@ -280,7 +280,7 @@ function Home({ language, country }) {
               <div className="d-sm-flex d-block align-items-center mb-2">
                 <div className="me-auto pr-3">
                   <span className="text-white fs-16 font-w200 d-block mb-1">{t('overallSummary')}</span>
-                  <h2 className="fs-32 text-white mb-0">250.00<span className="fs-16 ms-2">{t('tons')}</span></h2>
+                  <h2 className="fs-32 text-white mb-0">{exportweight}<span className="fs-16 ms-2">{t('tons')}</span></h2>
                 </div>
                 <div className="d-flex flex-wrap">
                   <svg width="70" height="46" viewBox="0 0 87 58" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -324,7 +324,7 @@ function Home({ language, country }) {
           </div>
         </div>
         <div className="col-md-4">
-          <MineralsPriceTable />
+          {/* <MineralsPriceTable /> */}
         </div>
       </div>
       
@@ -332,7 +332,7 @@ function Home({ language, country }) {
       <div className="row mt-4">
         <div className="col-md-12">
           {/* Price Prediction Card component on its own row */}
-          <PricePredictionCard language={language} />
+          {/* <PricePredictionCard language={language} /> */}
         </div>
       </div>
           

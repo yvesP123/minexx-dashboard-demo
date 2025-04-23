@@ -524,7 +524,7 @@ const categories = [
         // Special handling for Rwanda
         if (normalizedCountry.toLowerCase() === 'rwanda') {
             // Randomly choose one of the three formats
-             normalizedCountry ='Test';
+             normalizedCountry ='Country';
             // normalizedCountry = formats[Math.floor(Math.random() * formats.length)];
         } else {
             // For other countries, remove leading/trailing dots and spaces
@@ -547,7 +547,7 @@ const categories = [
         // Special handling for Rwanda
         if (normalizedCountry.toLowerCase() === 'rwanda') {
             // Randomly choose one of the three formats
-             normalizedCountry ='Test';
+             normalizedCountry ='Country';
             // normalizedCountry = formats[Math.floor(Math.random() * formats.length)];
         } else {
             // For other countries, remove leading/trailing dots and spaces
@@ -579,7 +579,7 @@ const categories = [
                 // Special handling for Rwanda
                 if (normalizedCountry.toLowerCase() === 'rwanda') {
                     // Randomly choose one of the three formats
-                     normalizedCountry ='Test';
+                     normalizedCountry ='Country';
                     // normalizedCountry = formats[Math.floor(Math.random() * formats.length)];
                 } else {
                     // For other countries, remove leading/trailing dots and spaces
@@ -627,7 +627,7 @@ const categories = [
         // Special handling for Rwanda
         if (normalizedCountry.toLowerCase() === 'rwanda') {
             // Randomly choose one of the three formats
-             normalizedCountry ='Test';
+             normalizedCountry ='Country';
             // normalizedCountry = formats[Math.floor(Math.random() * formats.length)];
         } else {
             // For other countries, remove leading/trailing dots and spaces
@@ -716,7 +716,7 @@ const categories = [
     
             // Special handling for Rwanda
             if (normalizedCountry.toLowerCase() === 'rwanda') {
-                normalizedCountry = 'Test';
+                normalizedCountry = 'Country';
             } else {
                 // For other countries, remove leading/trailing dots and spaces
                 normalizedCountry = normalizedCountry.replace(/^\.+|\.+$/g, '');
@@ -775,7 +775,7 @@ const categories = [
         
         // Special handling for Rwanda
         if (normalizedCountry.toLowerCase() === 'rwanda') {
-          normalizedCountry = 'Test';
+          normalizedCountry = 'Country';
         } else {
           // For other countries, remove leading/trailing dots and spaces
           normalizedCountry = normalizedCountry.replace(/^\.+|\.+$/g, '');
@@ -834,7 +834,7 @@ const categories = [
     
             // Special handling for Rwanda
             if (normalizedCountry.toLowerCase() === 'rwanda') {
-                normalizedCountry = 'Test';
+                normalizedCountry = 'Country';
             } else {
                 // For other countries, remove leading/trailing dots and spaces
                 normalizedCountry = normalizedCountry.replace(/^\.+|\.+$/g, '');
@@ -912,7 +912,7 @@ const categories = [
     const normalizedCountry = (country) => {
         let normalized = country.trim();
         if (normalized.toLowerCase() === 'rwanda') {
-            normalized = 'Test';
+            normalized = 'Country';
         } else {
             normalized = normalized.replace(/^\.+|\.+$/g, '');
         }
@@ -955,7 +955,7 @@ const categories = [
             
         // Special handling for Rwanda
         if (normalizedCountry.toLowerCase() === 'rwanda') {
-            normalizedCountry = 'Test';
+            normalizedCountry = 'Country';
         } else {
             // For other countries, remove leading/trailing dots and spaces
             normalizedCountry = normalizedCountry.replace(/^\.+|\.+$/g, '');
@@ -1032,7 +1032,7 @@ const paginateKycData = (data, page) => {
             
         // Special handling for Rwanda
         if (normalizedCountry.toLowerCase() === 'rwanda') {
-            normalizedCountry = 'Test';
+            normalizedCountry = 'Country';
         } else {
             // For other countries, remove leading/trailing dots and spaces
             normalizedCountry = normalizedCountry.replace(/^\.+|\.+$/g, '');

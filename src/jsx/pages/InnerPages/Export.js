@@ -34,7 +34,7 @@ const DocumentsList = ({ documents, dashboard, exportId, language, country }) =>
       let result = country.trim();
       
       if (result.toLowerCase() === 'rwanda') {
-          return 'Test';
+          return 'Country';
       } else {
           return result.replace(/^\.+|\.+$/g, '');
       }
@@ -359,7 +359,7 @@ const Export = ({ country, language }) => {
         let result = country.trim();
         
         if (result.toLowerCase() === 'rwanda') {
-            return 'Test';
+            return 'Country';
         } else {
             return result.replace(/^\.+|\.+$/g, '');
         }
