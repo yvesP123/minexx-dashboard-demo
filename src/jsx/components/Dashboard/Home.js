@@ -110,11 +110,11 @@ function Home({ language, country }) {
   }
 
   const loadOverview = async() => {
-    if(user?.type !== 'minexx'){
-      axiosInstance.get(`${baseURL_}metals-api`).then(response=>{
-        setrates(response.data.rates)
-      })
-    }
+    // if(user?.type !== 'minexx'){
+    //   axiosInstance.get(`${baseURL_}metals-api`).then(response=>{
+    //     setrates(response.data.rates)
+    //   })
+    // }
     let normalizedCountrys = country.trim();
             
     // Special handling for Rwanda
@@ -126,46 +126,46 @@ function Home({ language, country }) {
         // For other countries, remove leading/trailing dots and spaces
         normalizedCountrys = normalizedCountrys.replace(/^\.+|\.+$/g, '');
     }
-    axiosInstance.get(`${baseURL_}overview/risks`,
-      {
-        params: {
-            country:normalizedCountrys,
-          }
-    }).then(response=>{
-      setincidents(response.data.risks)
-    }).catch(err=>{
-      try{
-        if(err.response.code === 403){
-          dispatch(Logout(navigate))
-        }else{
-          toast.warn(err.response.message)
-        }
-      }catch(e){
-        toast.error(err.message)
-      }
-    })
+    // axiosInstance.get(`${baseURL_}overview/risks`,
+    //   {
+    //     params: {
+    //         country:normalizedCountrys,
+    //       }
+    // }).then(response=>{
+    //   setincidents(response.data.risks)
+    // }).catch(err=>{
+    //   try{
+    //     if(err.response.code === 403){
+    //       dispatch(Logout(navigate))
+    //     }else{
+    //       toast.warn(err.response.message)
+    //     }
+    //   }catch(e){
+    //     toast.error(err.message)
+    //   }
+    // })
 
-    axiosInstance.get(`${baseURL_}overview/incidents`,
-      {
-        params:
-        {
-          country:normalizedCountrys,
+    // axiosInstance.get(`${baseURL_}overview/incidents`,
+    //   {
+    //     params:
+    //     {
+    //       country:normalizedCountrys,
 
-        }
-      }).then(response=>{
-      setseries1(response.data.incidents)
-      settotal1(response.data.count)
-    }).catch(err=>{
-      try{
-        if(err.response.code === 403){
-          dispatch(Logout(navigate))
-        }else{
-          toast.warn(err.response.message)
-        }
-      }catch(e){
-        toast.error(err.message)
-      }
-    })
+    //     }
+    //   }).then(response=>{
+    //   setseries1(response.data.incidents)
+    //   settotal1(response.data.count)
+    // }).catch(err=>{
+    //   try{
+    //     if(err.response.code === 403){
+    //       dispatch(Logout(navigate))
+    //     }else{
+    //       toast.warn(err.response.message)
+    //     }
+    //   }catch(e){
+    //     toast.error(err.message)
+    //   }
+    // })
     axiosInstance.get(`${baseURL_}metals-api/yearly`
     ).then(response=>{
     console.log("Mineral Data", response.data.data.data);
@@ -225,27 +225,27 @@ function Home({ language, country }) {
         // For other countries, remove leading/trailing dots and spaces
         normalizedCountryq = normalizedCountryq.replace(/^\.+|\.+$/g, '');
     }
-    axiosInstance.get(`${baseURL_}overview/assessments`,
-      {
-        params:
-        {
-          country:normalizedCountryq,
+    // axiosInstance.get(`${baseURL_}overview/assessments`,
+    //   {
+    //     params:
+    //     {
+    //       country:normalizedCountryq,
 
-        }
-      }).then(response=>{
-      setseries3(response.data.assessments)
-      settotal3(response.data.count)
-    }).catch(err=>{ 
-      try{
-        if(err.response.code === 403){
-          dispatch(Logout(navigate))
-        }else{
-          toast.warn(err.response.message)
-        }
-      }catch(e){
-        toast.error(err.message)
-      }
-    })
+    //     }
+    //   }).then(response=>{
+    //   setseries3(response.data.assessments)
+    //   settotal3(response.data.count)
+    // }).catch(err=>{ 
+    //   try{
+    //     if(err.response.code === 403){
+    //       dispatch(Logout(navigate))
+    //     }else{
+    //       toast.warn(err.response.message)
+    //     }
+    //   }catch(e){
+    //     toast.error(err.message)
+    //   }
+    // })
   }
 
   useEffect(() => {

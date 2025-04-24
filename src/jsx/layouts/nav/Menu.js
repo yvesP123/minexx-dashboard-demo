@@ -29,10 +29,10 @@ export const RootMenu = [
         update:"New",
         iconStyle : <i className="flaticon-business-report" />,
         content: [
-            {
-                title: 'Trace Report',
-                to: 'reports/trace',
-            },
+            // {
+            //     title: 'Trace Report',
+            //     to: 'reports/trace',
+            // },
             {
                 title:'Kyc Summary',
                 to:'reports/kycsummary'
@@ -114,10 +114,10 @@ export const RegulatorMenu = [
         update:"New",
         iconStyle : <i className="flaticon-business-report" />,
         content: [
-            {
-                title: 'Trace Reports',
-                to: 'reports/trace',
-            },
+            // {
+            //     title: 'Trace Reports',
+            //     to: 'reports/trace',
+            // },
             {
                 title:'Kyc Summary',
                 to:'reports/kycsummary'
@@ -210,10 +210,10 @@ export const IMenu = [
         update:"New",
         iconStyle : <i className="flaticon-business-report" />,
         content: [
-            {
-                title: 'Trace Report',
-                to: 'reports/trace',
-            },
+            // {
+            //     title: 'Trace Report',
+            //     to: 'reports/trace',
+            // },
             {
                 title:'Kyc Summary',
                 to:'reports/kycsummary'
