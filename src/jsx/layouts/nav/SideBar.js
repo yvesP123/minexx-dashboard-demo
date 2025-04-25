@@ -120,7 +120,9 @@ const SideBar = ({ language }) => {
   }
 
   // Function to get translated text
-  const t = (key) => menuTranslations[language][key] || key;
+  const t = (key) => {
+    return (language && menuTranslations[language] && menuTranslations[language][key]) || key;
+  }
 
   // Function to get translated menu item
   const getTranslatedMenuItem = (item) => {

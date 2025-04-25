@@ -140,9 +140,11 @@ const Header = ({ onLanguageChange, onCountryChange }) => {
       localStorage.setItem(`_dash`, newView);
       window.location.reload();
     }
-  }
+  }    
 
-  const t = (key) => translations[lang][key] || key;
+  const t = (key) => {
+    return (lang && translations[lang] && translations[lang][key]) || key;
+  }
   const otherCountries = Object.keys(availableCountries).filter(c => c !== country);
 
   return (
