@@ -305,10 +305,15 @@ function Home({ language, country }) {
             </div>
           </div>
         </div>
+        { country === 'Libya' ?
+        <div className="col-md-8">
+
+        </div>:
         <div className="col-md-8">
           {/* Pass height prop to MineVolumeChart to make it consistent with other card */}
           <MineVolumeChart country={country} height={firstRowHeight} />
         </div>
+        }
       </div>
       
       {/* Second row: Market Status and Minerals Price */}
@@ -324,7 +329,7 @@ function Home({ language, country }) {
           </div>
         </div>
         <div className="col-md-4">
-          {/* <MineralsPriceTable /> */}
+          <MineralsPriceTable />
         </div>
       </div>
       
@@ -332,7 +337,7 @@ function Home({ language, country }) {
       <div className="row mt-4">
         <div className="col-md-12">
           {/* Price Prediction Card component on its own row */}
-          {/* <PricePredictionCard language={language} /> */}
+          <PricePredictionCard language={language} />
         </div>
       </div>
           
