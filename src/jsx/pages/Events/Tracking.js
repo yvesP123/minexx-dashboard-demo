@@ -2,7 +2,7 @@ import React, { useEffect, useContext, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { ListGroup } from 'react-bootstrap';
 import { ThemeContext } from '../../../context/ThemeContext';
-import { translations } from './Exporttranslation';
+import { translations } from './TrackingTranslation';
 import axiosInstance from '../../../services/AxiosInstance';
 import { toast } from 'react-toastify';
 
@@ -53,7 +53,7 @@ const Tracking = ({ language, country }) => {
         
         // Calculate percentage and display it
         const percentageValue = calculateCompletionPercentage(trackingData);
-        setCompletionPercentage(`${percentageValue}% Completed`);
+        setCompletionPercentage(`${percentageValue}%`);
         
         // Set days left based on duration
         if (trackingData && trackingData.duration) {
@@ -163,7 +163,7 @@ const Tracking = ({ language, country }) => {
       if (response.data.success) {
         // Update the local state with tracking data
         setTracking(updatedTracking);
-        setCompletionPercentage(`${newPercentage}% Completed`);
+        setCompletionPercentage(`${newPercentage}%`);
         
         toast.success("Task updated successfully");
       } else {
@@ -202,10 +202,10 @@ const Tracking = ({ language, country }) => {
 
       <div className="row">
         <div className="d-flex justify-content-between align-items-center mb-4">
-          <h2>{t("Time Tracking")}: <span className="text text-primary">{completionPercentage}</span></h2>
+          <h2>{t("Time Tracking")}: <span className="text text-primary">{completionPercentage} {t("Completed")}</span></h2>
           <div className={`text-white p-3 rounded ${getDaysLeftBackgroundColor()}`}>
             <h1 className="m-0">{daysLeft}</h1>
-            <div>Days More</div>
+            <div>{t('Days More')}</div>
           </div>
         </div>
 
