@@ -1,19 +1,35 @@
 import React, { useEffect, useState, useRef } from 'react';
 
-const MetalPricesCandlestickChart = ({ data }) => {
+const MetalPricesCandlestickChart = ({ data, country }) => {
   const chartRef = useRef(null);
   const tooltipRef = useRef(null);
   const canvasRef = useRef(null);
-  const [activeMetalType, setActiveMetalType] = useState('all'); // 'all', 'TIN', 'LME-TIN', 'TIN3M'
+  const [activeMetalType, setActiveMetalType] = useState('all');
   const [hoveredCandle, setHoveredCandle] = useState(null);
   const [loading, setLoading] = useState(true);
   
-  // Metal-specific colors
-  const metalColors = {
-    'TIN': '#FFA500',      // Orange
-    'LME-TIN': '#2196F3',  // Blue
-    'TIN3M': '#FF4444'     // Red
+  // Define metal types and colors based on country
+  const getMetalConfig = () => {
+    if (country === 'Gabon'|| country === 'Ghana' || country === 'France' || country ==='Togo' || country === 'Niger') {
+      return {
+        metalTypes: ['Gold'],
+        metalColors: {
+          'Gold': '#FFD700'     // Gold
+        }
+      };
+    } else {
+      return {
+        metalTypes: ['TIN', 'LME-TIN', 'TIN3M'],
+        metalColors: {
+          'TIN': '#FFA500',      // Orange
+          'LME-TIN': '#2196F3',  // Blue
+          'TIN3M': '#FF4444'     // Red
+        }
+      };
+    }
   };
+
+  const { metalTypes, metalColors } = getMetalConfig();
 
   // Set up hover effects and tooltip functionality
   useEffect(() => {
@@ -58,7 +74,7 @@ const MetalPricesCandlestickChart = ({ data }) => {
     } else {
       setLoading(false);
     }
-  }, [data]);
+  }, [data, country]); // Added country to dependencies
 
   // Handle changes to activeMetalType
   useEffect(() => {
@@ -75,122 +91,268 @@ const MetalPricesCandlestickChart = ({ data }) => {
     
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
-  }, [activeMetalType, loading]);
+  }, [activeMetalType, loading, country]);
 
-  // Process data for rendering - support both API response formats
-  const processData = () => {
-    if (!data) return { processedData: {}, sortedDates: [] };
+  // Generate mock data for metals (now only used as fallback)
+  const generateMockData = (metalType, startDate, endDate) => {
+    const data = [];
+    const start = new Date(startDate);
+    const end = new Date(endDate);
     
-    // Check if data has the right structure
-    let metalData;
-    if (data.data && data.data.data) {
-      metalData = data.data.data;
-    } else if (data.data) {
-      metalData = data.data;
-    } else {
-      console.log("Unexpected data format:", data);
-      return { processedData: {}, sortedDates: [] };
+    // Base prices for different metals (fallback only)
+    const basePrices = {
+      'Gold': 8500,  // Copper fallback price
+    };
+    
+    let currentPrice = basePrices[metalType] || 1000;
+    const current = new Date(start);
+    
+    while (current <= end) {
+      const dateStr = current.toISOString().split('T')[0];
+      
+      // Generate realistic OHLC data
+      const volatility = 0.015; 
+      const trend = (Math.random() - 0.5) * volatility;
+      
+      const open = currentPrice;
+      const change = currentPrice * trend;
+      const close = currentPrice + change;
+      
+      const high = Math.max(open, close) * (1 + Math.random() * 0.01);
+      const low = Math.min(open, close) * (1 - Math.random() * 0.01);
+      
+      data.push({
+        date: new Date(current),
+        open,
+        high,
+        close,
+        low,
+        formattedDate: current.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+        isUp: close >= open,
+        metalType
+      });
+      
+      currentPrice = close;
+      current.setDate(current.getDate() + 1);
     }
     
-    const allDates = new Set();
-    const metalTypes = ['TIN', 'LME-TIN', 'TIN3M'];
-    const processedData = {};
+    return data;
+  };
+
+  // Process copper data from API response to OHLC format
+  const processCopperData = (copperApiData) => {
+    if (!copperApiData) return [];
     
-    // Collect all unique dates from all metal types
-    metalTypes.forEach(type => {
-      if (metalData[type]) {
-        Object.keys(metalData[type]).forEach(date => allDates.add(date));
-      }
-    });
+    const copperDataPoints = [];
+    const sortedDates = Object.keys(copperApiData).sort();
     
-    // Sort dates chronologically
-    const sortedDates = Array.from(allDates).sort();
-    
-    // Process data for each metal type
-    metalTypes.forEach(type => {
-      processedData[type] = [];
+    sortedDates.forEach((date, index) => {
+      const value = copperApiData[date].USDCOPPER;
+      if (value === undefined) return;
       
-      sortedDates.forEach(date => {
-        let value;
+      // Create OHLC data by simulating realistic price movements based on actual copper prices
+      const prevDay = copperDataPoints.length > 0 ? 
+        copperDataPoints[copperDataPoints.length - 1] : null;
         
-        // Handle both API response formats
-        if (metalData[type][date]) {
-          if (metalData[type][date][`USD${type}`]) {
-            // Format 1: { USDTIN: value }
-            value = metalData[type][date][`USD${type}`];
-          } else if (metalData[type][date][type]) {
-            // Format 2: { TIN: value }
-            value = metalData[type][date][type];
-          }
-        }
+      let open, high, low, close;
+      
+      if (prevDay) {
+        const prevTrend = prevDay.close >= prevDay.open;
+        const randomFactor = Math.random();
         
-        if (value !== undefined) {
-          // Create OHLC data by simulating realistic price movements
-          // For visualization purposes, we'll establish patterns based on sequential price changes
-          
-          // Find previous day to determine trend direction
-          const prevDay = processedData[type].length > 0 ? 
-            processedData[type][processedData[type].length - 1] : null;
-            
-          let open, high, low, close;
-          
-          if (prevDay) {
-            // Determine if this is a continuation or reversal from previous day
-            const prevTrend = prevDay.close >= prevDay.open;
-            const randomFactor = Math.random();
-            
-            // 80% chance to continue previous trend, 20% to reverse
-            if (randomFactor < 0.8) {
-              if (prevTrend) {
-                // Continuing uptrend
-                open = prevDay.close * (0.997 + 0.003 * Math.random());
-                close = value;
-                high = Math.max(open, close) * (1 + 0.005 * Math.random());
-                low = Math.min(open, close) * (1 - 0.003 * Math.random());
-              } else {
-                // Continuing downtrend
-                open = prevDay.close * (1.003 - 0.003 * Math.random());
-                close = value;
-                high = Math.max(open, close) * (1 + 0.003 * Math.random());
-                low = Math.min(open, close) * (1 - 0.005 * Math.random());
-              }
-            } else {
-              // Trend reversal
-              if (prevTrend) {
-                // Reversal from up to down
-                open = prevDay.close * (1 + 0.002 * Math.random());
-                close = value;
-                high = open * (1 + 0.004 * Math.random());
-                low = close * (1 - 0.002 * Math.random());
-              } else {
-                // Reversal from down to up
-                open = prevDay.close * (1 - 0.002 * Math.random());
-                close = value;
-                high = close * (1 + 0.002 * Math.random());
-                low = open * (1 - 0.004 * Math.random());
-              }
-            }
-          } else {
-            // First day in the series - no previous trend
-            open = value * (1 - 0.01 + 0.02 * Math.random());
+        if (randomFactor < 0.8) {
+          if (prevTrend) {
+            open = prevDay.close * (0.997 + 0.003 * Math.random());
             close = value;
             high = Math.max(open, close) * (1 + 0.005 * Math.random());
+            low = Math.min(open, close) * (1 - 0.003 * Math.random());
+          } else {
+            open = prevDay.close * (1.003 - 0.003 * Math.random());
+            close = value;
+            high = Math.max(open, close) * (1 + 0.003 * Math.random());
             low = Math.min(open, close) * (1 - 0.005 * Math.random());
           }
-          
-          processedData[type].push({
-            date: new Date(date),
-            open,
-            high,
-            close,
-            low,
-            formattedDate: new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-            isUp: close >= open,
-            metalType: type
-          });
+        } else {
+          if (prevTrend) {
+            open = prevDay.close * (1 + 0.002 * Math.random());
+            close = value;
+            high = open * (1 + 0.004 * Math.random());
+            low = close * (1 - 0.002 * Math.random());
+          } else {
+            open = prevDay.close * (1 - 0.002 * Math.random());
+            close = value;
+            high = close * (1 + 0.002 * Math.random());
+            low = open * (1 - 0.004 * Math.random());
+          }
         }
+      } else {
+        open = value * (1 - 0.01 + 0.02 * Math.random());
+        close = value;
+        high = Math.max(open, close) * (1 + 0.005 * Math.random());
+        low = Math.min(open, close) * (1 - 0.005 * Math.random());
+      }
+      
+      copperDataPoints.push({
+        date: new Date(date),
+        open,
+        high,
+        close,
+        low,
+        formattedDate: new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+        isUp: close >= open,
+        metalType: 'Gold'
       });
     });
+    
+    return copperDataPoints;
+  };
+
+  // Process data for rendering - support both API response formats and use real copper data for Gabon/Ghana/France
+  const processData = () => {
+    if (!data && (country !== 'Gabon'|| country !=='Ghana'|| country !=='France') ) return { processedData: {}, sortedDates: [] };
+    
+    const processedData = {};
+    let sortedDates = [];
+    
+    if (country === 'Gabon' || country === 'Ghana' || country === 'France' || country === 'Togo' || country === 'Niger') {
+      // For Gabon/Ghana/France: Use only real copper data from API
+      let copperData = null;
+      
+      // Extract copper data from API response if available
+      if (data && data.data) {
+        let metalData;
+        if (data.data.data) {
+          metalData = data.data.data;
+        } else {
+          metalData = data.data;
+        }
+        
+        if (metalData && metalData.COPPER) {
+          copperData = processCopperData(metalData.COPPER);
+        }
+      }
+      
+      // Process copper data
+      if (copperData && copperData.length > 0) {
+        processedData['COPPER'] = copperData;
+        
+        // Get dates from copper data
+        const allDates = new Set();
+        copperData.forEach(point => allDates.add(point.date.toISOString().split('T')[0]));
+        sortedDates = Array.from(allDates).sort();
+      } else {
+        // Fallback to mock copper data if no real data available
+        const endDate = new Date();
+        const startDate = new Date();
+        startDate.setDate(endDate.getDate() - 30); // Last 30 days
+
+        processedData['Gold'] = generateMockData('Gold', startDate, endDate);
+
+        const allDates = new Set();
+        processedData['Gold'].forEach(point => allDates.add(point.date.toISOString().split('T')[0]));
+        sortedDates = Array.from(allDates).sort();
+      }
+    } else {
+      // Original logic for other countries
+      if (!data) return { processedData: {}, sortedDates: [] };
+      
+      let metalData;
+      if (data.data && data.data.data) {
+        metalData = data.data.data;
+      } else if (data.data) {
+        metalData = data.data;
+      } else {
+        console.log("Unexpected data format:", data);
+        return { processedData: {}, sortedDates: [] };
+      }
+      
+      const allDates = new Set();
+      
+      // Collect all unique dates from all metal types
+      metalTypes.forEach(type => {
+        if (metalData[type]) {
+          Object.keys(metalData[type]).forEach(date => allDates.add(date));
+        }
+      });
+      
+      // Sort dates chronologically
+      sortedDates = Array.from(allDates).sort();
+      
+      // Process data for each metal type
+      metalTypes.forEach(type => {
+        processedData[type] = [];
+        
+        sortedDates.forEach(date => {
+          let value;
+          
+          // Handle both API response formats
+          if (metalData[type] && metalData[type][date]) {
+            if (metalData[type][date][`USD${type}`]) {
+              // Format 1: { USDTIN: value }
+              value = metalData[type][date][`USD${type}`];
+            } else if (metalData[type][date][type]) {
+              // Format 2: { TIN: value }
+              value = metalData[type][date][type];
+            }
+          }
+          
+          if (value !== undefined) {
+            // Create OHLC data by simulating realistic price movements
+            const prevDay = processedData[type].length > 0 ? 
+              processedData[type][processedData[type].length - 1] : null;
+              
+            let open, high, low, close;
+            
+            if (prevDay) {
+              const prevTrend = prevDay.close >= prevDay.open;
+              const randomFactor = Math.random();
+              
+              if (randomFactor < 0.8) {
+                if (prevTrend) {
+                  open = prevDay.close * (0.997 + 0.003 * Math.random());
+                  close = value;
+                  high = Math.max(open, close) * (1 + 0.005 * Math.random());
+                  low = Math.min(open, close) * (1 - 0.003 * Math.random());
+                } else {
+                  open = prevDay.close * (1.003 - 0.003 * Math.random());
+                  close = value;
+                  high = Math.max(open, close) * (1 + 0.003 * Math.random());
+                  low = Math.min(open, close) * (1 - 0.005 * Math.random());
+                }
+              } else {
+                if (prevTrend) {
+                  open = prevDay.close * (1 + 0.002 * Math.random());
+                  close = value;
+                  high = open * (1 + 0.004 * Math.random());
+                  low = close * (1 - 0.002 * Math.random());
+                } else {
+                  open = prevDay.close * (1 - 0.002 * Math.random());
+                  close = value;
+                  high = close * (1 + 0.002 * Math.random());
+                  low = open * (1 - 0.004 * Math.random());
+                }
+              }
+            } else {
+              open = value * (1 - 0.01 + 0.02 * Math.random());
+              close = value;
+              high = Math.max(open, close) * (1 + 0.005 * Math.random());
+              low = Math.min(open, close) * (1 - 0.005 * Math.random());
+            }
+            
+            processedData[type].push({
+              date: new Date(date),
+              open,
+              high,
+              close,
+              low,
+              formattedDate: new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+              isUp: close >= open,
+              metalType: type
+            });
+          }
+        });
+      });
+    }
     
     return { processedData, sortedDates };
   };
@@ -206,7 +368,6 @@ const MetalPricesCandlestickChart = ({ data }) => {
     
     const { processedData, sortedDates } = processData();
     if (sortedDates.length === 0) {
-      // Display a message if no data is available
       const noDataMessage = document.createElement('div');
       noDataMessage.style.textAlign = 'center';
       noDataMessage.style.padding = '50px';
@@ -236,7 +397,6 @@ const MetalPricesCandlestickChart = ({ data }) => {
     });
     
     if (totalDataPoints === 0) {
-      // Display a message if no data points are available
       ctx.fillStyle = '#999';
       ctx.font = '16px Arial';
       ctx.textAlign = 'center';
@@ -323,7 +483,7 @@ const MetalPricesCandlestickChart = ({ data }) => {
       if (activeMetalType !== 'all' && activeMetalType !== type) return;
       
       const color = metalColors[type];
-      const candleWidth = chartWidth / (sortedDates.length * 4); // Adjust width based on number of dates
+      const candleWidth = chartWidth / (sortedDates.length * 4);
       
       dataPoints.forEach((point, index) => {
         const dateIndex = sortedDates.indexOf(point.date.toISOString().split('T')[0]);
@@ -366,9 +526,7 @@ const MetalPricesCandlestickChart = ({ data }) => {
         const candleHeight = Math.abs(closeY - openY);
         const candleY = Math.min(openY, closeY);
         
-        // Use green for up candles, red for down candles, but tint them based on metal type
         const baseColor = point.isUp ? '#4CAF50' : '#F44336';
-        // Apply a subtle tint of the metal color
         ctx.fillStyle = baseColor;
         ctx.fillRect(adjustedX - candleWidth / 2, candleY, candleWidth, Math.max(1, candleHeight));
         
@@ -385,7 +543,6 @@ const MetalPricesCandlestickChart = ({ data }) => {
       const mouseX = e.clientX - rect.left;
       const mouseY = e.clientY - rect.top;
       
-      // Check if mouse is over any candle
       let found = false;
       for (const candle of candlePositions) {
         if (
@@ -397,7 +554,6 @@ const MetalPricesCandlestickChart = ({ data }) => {
           setHoveredCandle(candle);
           found = true;
           
-          // Show tooltip
           if (tooltipRef.current) {
             const tooltip = tooltipRef.current;
             tooltip.style.display = 'block';
@@ -415,7 +571,6 @@ const MetalPricesCandlestickChart = ({ data }) => {
               <div>Close: <span style="color: #ddd">${Math.round(data.close).toLocaleString()}</span></div>
             `;
           }
-          
           break;
         }
       }
@@ -435,8 +590,10 @@ const MetalPricesCandlestickChart = ({ data }) => {
       }
     });
     
-    // Draw legend
-    const legendItems = [
+    // Draw legend based on country
+    const legendItems = (country === 'Gabon' || country === 'Ghana' || country === 'France'|| country === 'Togo' || country === 'Niger') ? [
+      { label: 'Gold', color: metalColors['Gold'], type: 'Gold' }
+    ] : [
       { label: 'LME TIN', color: metalColors['LME-TIN'], type: 'LME-TIN' },
       { label: 'TIN 3M', color: metalColors['TIN3M'], type: 'TIN3M' },
       { label: 'TIN', color: metalColors['TIN'], type: 'TIN' }
@@ -456,7 +613,6 @@ const MetalPricesCandlestickChart = ({ data }) => {
       ctx.textAlign = 'left';
       ctx.fillText(item.label, legendX + 18, legendY + 10);
       
-      // Make legend items clickable
       const labelWidth = ctx.measureText(item.label).width;
       const legendItemWidth = 18 + labelWidth + 20;
       
@@ -471,7 +627,6 @@ const MetalPricesCandlestickChart = ({ data }) => {
           mouseY >= legendY - 5 &&
           mouseY <= legendY + 15
         ) {
-          // Toggle filter
           if (activeMetalType === item.type) {
             setActiveMetalType('all');
           } else {
@@ -482,61 +637,6 @@ const MetalPricesCandlestickChart = ({ data }) => {
       
       legendX += legendItemWidth;
     });
-    
-    // Add "All" option to legend
-    ctx.fillStyle = '#fff';
-    ctx.font = activeMetalType === 'all' ? 'bold 12px Arial' : '12px Arial';
-    ctx.textAlign = 'left';
-    ctx.fillText('All', legendX + 18, legendY + 10);
-    
-    // Add border around selected filter
-    if (activeMetalType !== 'all') {
-      const selectedItem = legendItems.find(item => item.type === activeMetalType);
-      if (selectedItem) {
-        const index = legendItems.indexOf(selectedItem);
-        const startX = padding.left;
-        let selectedX = startX;
-        
-        for (let i = 0; i < index; i++) {
-          const labelWidth = ctx.measureText(legendItems[i].label).width;
-          selectedX += 18 + labelWidth + 20;
-        }
-        
-        const labelWidth = ctx.measureText(selectedItem.label).width;
-        
-        ctx.strokeStyle = selectedItem.color;
-        ctx.lineWidth = 2;
-        ctx.strokeRect(selectedX - 2, legendY - 4, labelWidth + 24, 20);
-      }
-    }
-    
-    // Add Reset button if filtering is active
-    if (activeMetalType !== 'all') {
-      const resetX = canvas.width - padding.right - 60;
-      
-      ctx.fillStyle = '#444';
-      ctx.fillRect(resetX, legendY - 4, 60, 20);
-      
-      ctx.fillStyle = '#fff';
-      ctx.font = '12px Arial';
-      ctx.textAlign = 'center';
-      ctx.fillText('Reset', resetX + 30, legendY + 10);
-      
-      canvas.addEventListener('click', (e) => {
-        const rect = canvas.getBoundingClientRect();
-        const mouseX = e.clientX - rect.left;
-        const mouseY = e.clientY - rect.top;
-        
-        if (
-          mouseX >= resetX &&
-          mouseX <= resetX + 60 &&
-          mouseY >= legendY - 4 &&
-          mouseY <= legendY + 16
-        ) {
-          setActiveMetalType('all');
-        }
-      });
-    }
   };
 
   // Handle legend click
@@ -544,7 +644,7 @@ const MetalPricesCandlestickChart = ({ data }) => {
     setActiveMetalType(type === activeMetalType ? 'all' : type);
   };
 
-  // Add buttons for each metal type
+  // Render controls based on country
   const renderControls = () => {
     return (
       <div className="candlestick-controls mb-2 d-flex flex-wrap">
@@ -554,13 +654,14 @@ const MetalPricesCandlestickChart = ({ data }) => {
             className="btn btn-sm mr-2 mb-1"
             style={{
               backgroundColor: activeMetalType === type ? color : '#333',
-              color: '#fff',
+              color: activeMetalType === type ? '#000' : '#fff',
               borderColor: color,
               marginRight: '8px'
             }}
             onClick={() => handleLegendClick(type)}
           >
-            {type}
+            {type === 'Gold' && (country === 'Gabon' || country === 'Ghana' || country === 'France' || country === 'Togo' || country === 'Niger') 
+              ? `${type}` : type}
           </button>
         ))}
         <button
@@ -590,7 +691,6 @@ const MetalPricesCandlestickChart = ({ data }) => {
           backgroundColor: '#1E2130',
           borderRadius: '4px'
         }}>
-          {/* CSS for loading animation */}
           <style>
             {`
               @keyframes pulse {
@@ -624,23 +724,27 @@ const MetalPricesCandlestickChart = ({ data }) => {
             `}
           </style>
           
-          {/* Loading indicator */}
           <div style={{ 
             display: 'flex', 
             alignItems: 'flex-end', 
             height: '100px', 
             marginBottom: '20px' 
           }}>
-            <div className="chart-bar chart-bar-1" style={{ borderTop: `3px solid ${metalColors['TIN']}` }}></div>
-            <div className="chart-bar chart-bar-2" style={{ borderTop: `3px solid ${metalColors['LME-TIN']}` }}></div>
-            <div className="chart-bar chart-bar-3" style={{ borderTop: `3px solid ${metalColors['TIN3M']}` }}></div>
-            <div className="chart-bar chart-bar-4" style={{ borderTop: `3px solid ${metalColors['TIN']}` }}></div>
-            <div className="chart-bar chart-bar-5" style={{ borderTop: `3px solid ${metalColors['LME-TIN']}` }}></div>
+            {Object.entries(metalColors).map(([type, color], index) => (
+              <div 
+                key={type}
+                className={`chart-bar chart-bar-${index + 1}`} 
+                style={{ borderTop: `3px solid ${color}` }}
+              ></div>
+            ))}
           </div>
           
-          <div className="text-muted">Loading market data...</div>
+          <div className="text-muted">
+            Loading {(country === 'Gabon' || country === 'Ghana' || country === 'France'|| country === 'Togo' || country === 'Niger') 
+              ? 'Gold price data...' 
+              : 'market data...'}
+          </div>
           
-          {/* Skeleton legend */}
           <div style={{ 
             position: 'absolute', 
             bottom: '20px', 
@@ -681,9 +785,6 @@ const MetalPricesCandlestickChart = ({ data }) => {
     <div className="metal-prices-chart">
       {renderControls()}
       {renderChartContent()}
-      {/* <div className="chart-info mt-2 text-center">
-        <small className="text-muted">Click on legend items to filter by metal type</small>
-      </div> */}
     </div>
   );
 };

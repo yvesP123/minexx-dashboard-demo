@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import axiosInstance from '../../../services/AxiosInstance';
 import { baseURL_ } from '../../../config';
 
-const MineralsPriceTable = ({ refreshInterval = 60000 }) => { // 1 minute default refresh
+const MineralsPriceTable = ({ refreshInterval = 60000, country }) => { // 1 minute default refresh
   const [mineralsData, setMineralsData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -11,46 +11,105 @@ const MineralsPriceTable = ({ refreshInterval = 60000 }) => { // 1 minute defaul
   const refreshTimerRef = useRef(null);
   const countdownTimerRef = useRef(null);
 
-  // Define the minerals metadata (name, symbol, color) that we'll combine with API data
-  const mineralsMetadata = {
-    'USDLME-TIN': { name: 'Cassiterite', symbol: 'C', color: '#3e95cd' },
-    'USDTIN': { name: 'Tin', symbol: 'Ti', color: '#ff7761' },
-    'USDTIN3M': { name: 'Tantalum', symbol: 'Ta', color: '#e83e8c' },
-    'USDMG': { name: 'Magnesium', symbol: 'Ti', color: '#4caf50' },
-    'USDXAU': { name: 'Gold', symbol: 'G', color: '#ffc107' },
-    // Add any additional minerals here with their display properties
-    'USDW': { name: 'Wolframite', symbol: 'Wf', color: '#9c27b0' },
-    'USDBX': { name: 'Bauxite', symbol: 'Ba', color: '#00bcd4' }
-  };
+  // Define the minerals metadata based on country
+  let mineralsMetadata;
+  
+  if (country === 'Gabon'|| country === 'Ghana' || country === 'France'|| country === 'Togo') {
+    mineralsMetadata = {
+      'USDCU': { name: 'Copper', symbol: 'Cu', color: '#b87333' },
+      'USDDIAMOND': { name: 'Diamond', symbol: 'D', color: '#e8f4fd' },
+      'USDXAU': { name: 'Gold', symbol: 'Au', color: '#ffc107' },
+      'USDGOLD': { name: 'Gold', symbol: 'Au', color: '#ffd700' }
+    };
+  } else {
+    mineralsMetadata = {
+      'USDLME-TIN': { name: 'Cassiterite', symbol: 'C', color: '#3e95cd' },
+      'USDTIN': { name: 'Tin', symbol: 'Ti', color: '#ff7761' },
+      'USDTIN3M': { name: 'Tantalum', symbol: 'Ta', color: '#e83e8c' },
+      'USDMG': { name: 'Magnesium', symbol: 'Mg', color: '#4caf50' },
+      'USDXAU': { name: 'Gold', symbol: 'Au', color: '#ffc107' },
+      'USDW': { name: 'Wolframite', symbol: 'Wf', color: '#9c27b0' },
+      'USDBX': { name: 'Bauxite', symbol: 'Ba', color: '#00bcd4' },
+      'USDCOLTAN': { name: 'Coltan', symbol: 'Ta', color: '#2c3e50' },
+      'USDGOLD': { name: 'Gold', symbol: 'Au', color: '#ffd700' },
+      
+    };
+  }
 
   // Generate random percentage change for demo purposes
-  // In a real implementation, you would get this from API
   const generateRandomChange = () => {
     return (Math.random() * 20 - 5).toFixed(1);
   };
 
-  // Function to fetch minerals data
+  // Mock data for minerals not available in API
+  const getMockData = () => {
+    if (country === 'Gabon'|| country === 'Ghana' || country === 'France'|| country === 'Togo') {
+      return {
+        'USDDIAMOND': 5200.0,  // Price per carat for high-quality diamonds
+        'USDCU': 8.45,         // Price per pound for copper
+        'USDGOLD': 2340.50     // Price per ounce for gold
+      };
+    } else {
+      return {
+        'USDDIAMOND': 5200.0,
+        'USDCU': 8.45
+      };
+    }
+  };
+
   const fetchMineralsData = async () => {
     try {
       setLoading(true);
       const response = await axiosInstance.get(`${baseURL_}metals-apiall`);
       
+      console.log('Full API Response:', response);
+      console.log('Country prop:', country);
+      console.log('Response data:', response.data);
+      
       if (response.data && response.data.success) {
-        // Transform API data into the format we need for display
-        const formattedData = Object.entries(response.data.rates).map(([key, value]) => {
+        console.log('Rates from API:', response.data.rates);
+        
+        // Combine API data with mock data
+        const mockData = getMockData();
+        const combinedRates = { ...response.data.rates, ...mockData };
+        console.log('Combined rates (API + Mock):', combinedRates);
+        
+        // Filter data based on country-specific minerals
+        const relevantRates = Object.entries(combinedRates).filter(([key]) => 
+          mineralsMetadata.hasOwnProperty(key)
+        );
+        
+        console.log('Filtered rates for country:', relevantRates);
+        
+        // Transform combined data into the format we need for display
+        const formattedData = relevantRates.map(([key, value]) => {
+          console.log(`Processing: ${key} = ${value}`);
+          
           const metadata = mineralsMetadata[key] || {
             name: key.replace('USD', ''),
             symbol: key.replace('USD', '').charAt(0),
-            color: '#6c757d' // default color
+            color: '#6c757d'
           };
           
-          // Format the price - divide by 1000 if it's too large (like gold)
           let displayPrice = value;
           let unit = '$';
           
-          if (value > 100000) {
+          // Special handling for diamonds (price per carat)
+          if (key === 'USDDIAMOND') {
+            unit = '$/ct';
+          }
+          // Special handling for copper (price per pound)
+          else if (key === 'USDCU') {
+            unit = '$/lb';
+          }
+          // Special handling for gold (price per ounce)
+          else if (key === 'USDGOLD' || key === 'USDXAU') {
+            unit = '$/oz';
+          }
+          // Handle very large values
+          else if (value > 100000) {
             displayPrice = value / 1000;
-            unit = '$';
+            unit = '$/k';
           }
           
           return {
@@ -61,20 +120,22 @@ const MineralsPriceTable = ({ refreshInterval = 60000 }) => { // 1 minute defaul
             price: displayPrice.toFixed(1),
             unit,
             change: generateRandomChange(),
-            isPositive: Math.random() > 0.3 // Mostly positive changes for demo
+            isPositive: Math.random() > 0.3
           };
         });
         
+        console.log('Formatted data:', formattedData);
         setMineralsData(formattedData);
         setLastRefreshed(new Date());
         setCountdown(refreshInterval / 1000);
         setError(null);
       } else {
+        console.log('API response structure issue:', response.data);
         setError('Failed to fetch minerals data');
       }
     } catch (err) {
       console.error('Error fetching minerals data:', err);
-      setError('Error fetching minerals data');
+      setError('Error fetching minerals data: ' + err.message);
     } finally {
       setLoading(false);
     }
@@ -99,7 +160,7 @@ const MineralsPriceTable = ({ refreshInterval = 60000 }) => { // 1 minute defaul
       if (refreshTimerRef.current) clearInterval(refreshTimerRef.current);
       if (countdownTimerRef.current) clearInterval(countdownTimerRef.current);
     };
-  }, [refreshInterval]);
+  }, [refreshInterval, country]); // Added country to dependency array
 
   // Manual refresh handler
   const handleManualRefresh = () => {
@@ -138,18 +199,11 @@ const MineralsPriceTable = ({ refreshInterval = 60000 }) => { // 1 minute defaul
   return (
     <div className="card">
       <div className="card-header d-flex justify-content-between align-items-center">
-        <h4 className="fs-20 mb-0">Minerals Price</h4>
+        <h4 className="fs-20 mb-0">
+          Minerals Price {country && `- ${country}`}
+        </h4>
         <div className="d-flex align-items-center">
-          {/* <small className="fs-12 text-white-50 mr-2">
-            Refresh in: {formatTimeRemaining(countdown)}
-          </small> */}
-          {/* <button 
-            className="btn btn-sm btn-outline-info" 
-            onClick={handleManualRefresh}
-            disabled={loading}
-          > */}
-            {/* <i className={`fa fa-refresh ${loading ? 'fa-spin' : ''}`}></i>
-          </button> */}
+          {/* Refresh controls commented out as in original */}
         </div>
       </div>
       <div className="card-body p-0">

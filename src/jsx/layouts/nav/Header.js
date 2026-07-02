@@ -6,13 +6,20 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEarthAmericas, faArrowRightArrowLeft } from "@fortawesome/free-solid-svg-icons";
 import { ThemeContext } from '../../../context/ThemeContext';
 import ChatBot from '../../components/Dashboard/Chatbot';
+import {
+  getAvailableCountries as getAvailableCountriesFromAC,
+  getInitialCountry as getInitialCountryFromAC,
+  getAccessLevel,
+  getCountryDefaultLanguage,
+  hasGoldTogoAccess,
+} from '../../../services/AccessControl';
 
 const translations = {
   en: {
     dashboard: "Dashboard",
     EN: "English (EN)",
     FR: "French (FR)",
-    switchTo: "Switch to", 
+    switchTo: "Switch to",
     Logout: "Logout",
     changeCountry: "Change Country"
   },
@@ -26,37 +33,30 @@ const translations = {
   }
 };
 
-const countryLanguageDefaults = {
-  'Rwanda': 'en',
-  'Ghana': 'en',
-  'DRC': 'fr',
-  'France': 'fr',
-  'Gabon': 'fr',
-  'Ethiopia':'en'
-};
-
 const Header = ({ onLanguageChange, onCountryChange }) => {
   const [user] = useState(JSON.parse(localStorage.getItem(`_authUsr`)));
   const [access, setAccess] = useState('');
   const [view, setView] = useState(localStorage.getItem(`_dash`) || '');
-  const [country, setCountry] = useState(localStorage.getItem(`_country`) || 'Rwanda');
-  const [lang, setLang] = useState(localStorage.getItem(`_userLang`) || localStorage.getItem(`_lang`) || countryLanguageDefaults[country] || 'en');
+  
+  // Initialize country first using AccessControl
+  const [country, setCountry] = useState(getInitialCountryFromAC(user));
+  
+  // Now initialize lang with country available
+  const [lang, setLang] = useState(
+    localStorage.getItem(`_userLang`) || 
+    localStorage.getItem(`_lang`) || 
+    getCountryDefaultLanguage(getInitialCountryFromAC(user)) || 
+    'en'
+  );
 
-  const countries = {
-    'Rwanda': '',
-    // 'DRC': 'https://flagcdn.com/w320/cd.png',
-    // 'Gabon': 'https://flagcdn.com/w320/ga.png',
-    // 'Ghana': 'https://flagcdn.com/w320/gh.png',
-    // 'France': 'https://flagcdn.com/w320/fr.png',
-    // 'Ethiopia':'https://flagcdn.com/w320/et.png'
-  };
-
-  // Filter available countries based on user type
-  const availableCountries = user?.type === 'buyer' ||  user?.type === 'buyers'
-    ? { 'Rwanda': countries['Rwanda'], 'DRC': countries['DRC'] }
-    : countries;
+  // Get available countries from AccessControl
+  const availableCountriesMap = getAvailableCountriesFromAC(user);
+  const availableCountries = availableCountriesMap;
 
   useEffect(() => {
+    // Save country to localStorage
+    localStorage.setItem('_country', country);
+    
     // If current country is not in available countries, reset to first available
     if (!availableCountries[country]) {
       const firstAvailable = Object.keys(availableCountries)[0];
@@ -66,40 +66,19 @@ const Header = ({ onLanguageChange, onCountryChange }) => {
     
     updateAccessAndView(country);
     handleCountryLanguageChange(country);
-  }, [country]);
+  }, [country, availableCountries]);
 
   const updateAccessAndView = (selectedCountry) => {
-    let newAccess = '';
-    let newView = '';
+    const accessLevel = getAccessLevel(selectedCountry, user);
+    const newView = selectedCountry === 'France' ? (view || 'gold') : accessLevel;
   
-    switch (selectedCountry) {
-      case 'Rwanda':
-      case 'DRC':
-      case 'Ethiopia':
-        newAccess = '3ts';
-        newView = '3ts';
-        break;
-      case 'Gabon':
-      case 'Ghana':
-        newAccess = 'gold';
-        newView = 'gold';
-        break;
-      case 'France':
-        newAccess = 'both';
-        newView = view || 'gold';
-        break;
-      default:
-        newAccess = '3ts';
-        newView = '3ts';
-    }
-  
-    setAccess(newAccess);
+    setAccess(accessLevel);
     setView(newView);
     localStorage.setItem(`_dash`, newView);
   };
 
   const handleCountryLanguageChange = (selectedCountry) => {
-    const defaultLang = countryLanguageDefaults[selectedCountry];
+    const defaultLang = getCountryDefaultLanguage(selectedCountry);
     const userLang = localStorage.getItem(`_userLang`);
     
     if (!userLang) {
@@ -124,7 +103,7 @@ const Header = ({ onLanguageChange, onCountryChange }) => {
     
     localStorage.removeItem(`_userLang`);
     
-    const defaultLang = countryLanguageDefaults[selectedCountry];
+    const defaultLang = getCountryDefaultLanguage(selectedCountry);
     setLang(defaultLang);
     localStorage.setItem(`_lang`, defaultLang);
     onLanguageChange(defaultLang);
@@ -140,11 +119,9 @@ const Header = ({ onLanguageChange, onCountryChange }) => {
       localStorage.setItem(`_dash`, newView);
       window.location.reload();
     }
-  }    
-
-  const t = (key) => {
-    return (lang && translations[lang] && translations[lang][key]) || key;
   }
+
+  const t = (key) => translations[lang]?.[key] || key;
   const otherCountries = Object.keys(availableCountries).filter(c => c !== country);
 
   return (
@@ -160,16 +137,16 @@ const Header = ({ onLanguageChange, onCountryChange }) => {
             <ul className="navbar-nav header-right">
               <Dropdown as="li" className="nav-item header-profile">
                 <Dropdown.Toggle as="a" variant="" className="nav-link i-false c-pointer">								
-                  {/* <img src={availableCountries[country]} width="20"/> */}
+                  <img src={availableCountries[country]} width="20" alt={country + " flag"}/>
                   <div className="header-info">
-                    {/* <span>{country}<i className="fa fa-caret-down ms-3" aria-hidden="true"></i></span> */}
+                    <span>{country}<i className="fa fa-caret-down ms-3" aria-hidden="true"></i></span>
                   </div>
                 </Dropdown.Toggle>
                 <Dropdown.Menu align="right" className="mt-2">
                   {otherCountries.map((countryName) => (
                     <Dropdown.Item key={countryName} onClick={() => changeCountry(countryName)} className="dropdown-item ai-icon">
-                      <img src={availableCountries[countryName]} width="20"  className="me-2" />
-                      <span>Test</span>
+                      <img src={availableCountries[countryName]} width="20" alt={countryName + " flag"} className="me-2" />
+                      <span>{countryName}</span>
                     </Dropdown.Item>
                   ))}
                 </Dropdown.Menu>
@@ -211,7 +188,6 @@ const Header = ({ onLanguageChange, onCountryChange }) => {
         </nav>
       </div>
       <ChatBot /> 
-
     </div>
   );
 };

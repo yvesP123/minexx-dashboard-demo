@@ -164,4 +164,10 @@ export const translations = {
     "Containers/Drums inspected by Government Authority and Cleared": "Conteneurs/fûts inspectés par l'autorité gouvernementale et dédouanés",
     "Containers moved to shipping line + moved to Final Destination": "Conteneurs déplacés vers la ligne maritime + déplacés vers la destination finale"
   }
+
 };
+
+
+//notes for endpoint in the reporting section 
+// 1./report/timestamp
+// 2./report/trendgraph/${supplierId}

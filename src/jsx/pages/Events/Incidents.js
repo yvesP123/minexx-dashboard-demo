@@ -91,7 +91,7 @@ const Incidents = () =>{
 						<div className="col-xl-12">
 							<div className="card">
 								<div className="card-header border-0 pb-0">
-									<h4 className="fs-20 mb-0">Incident Levels</h4>
+									<h4 className="fs-20 mb-0">Incident Levelss</h4>
 									<DropdownBlogYear />
 								</div>
 								<div className="card-body">

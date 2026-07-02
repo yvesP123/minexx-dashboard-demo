@@ -7,7 +7,7 @@ import { Logout } from '../../../store/actions/AuthActions';
 import { useNavigate } from 'react-router-dom';
 import Chart from 'chart.js/auto';
 
-const TinPredictionChart = ({ language, refreshInterval = 300000 }) => { // 5 minutes default refresh
+const TinPredictionChart = ({ language, refreshInterval = 300000,country }) => { // 5 minutes default refresh
   const [forecastData, setForecastData] = useState(null);
   const [historicalData, setHistoricalData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -50,7 +50,7 @@ const TinPredictionChart = ({ language, refreshInterval = 300000 }) => { // 5 mi
 
     return { historicaldata: historical };
   };
-
+  
   // Function to process forecast data and add derived fields
   const processForecastData = (data) => {
     if (!data || !data.forecast || !data.forecast.length) return null;
@@ -359,7 +359,7 @@ const createCombinedChart = (historicalData, forecastData) => {
   // Function to fetch historical data
   const fetchHistoricalData = async () => {
     try {
-      const response = await axiosInstance.get(`https://minexxapi-testing-p7n5ing2cq-uc.a.run.app/historical`);
+      const response = await axiosInstance.get(`${baseURL_}historical`);
       if (response.data.success) {
         const processedData = processHistoricalData(response.data.data);
         setHistoricalData(processedData);
@@ -382,7 +382,7 @@ const createCombinedChart = (historicalData, forecastData) => {
   // Function to fetch forecast data
   const fetchForecast = async () => {
     try {
-      const response = await axiosInstance.get(`https://minexxapi-testing-p7n5ing2cq-uc.a.run.app/forecast`);
+      const response = await axiosInstance.get(`${baseURL_}forecast`);
       if (response.data.success) {
         const processedData = processForecastData(response.data.data);
         setForecastData(processedData);
@@ -522,7 +522,7 @@ const createCombinedChart = (historicalData, forecastData) => {
     <div className="card">
       <div className="card-header d-sm-flex d-block pb-0 border-0">
         <div>
-          <h4 className="fs-20 text-white">{t('TIN Price Analysis')}</h4>
+          <h4 className="fs-20 text-white">{country === 'Gabon' || country ==='Ghana' || country ==='France' || country === 'Togo'? 'Copper' : 'TIN'} Price Analysis</h4>
           <p className="mb-0 fs-12 text-white-50">{t('Historical data and price forecasts combined')}</p>
         </div>
         <div className="d-flex mt-sm-0 mt-3 align-items-center ml-auto">

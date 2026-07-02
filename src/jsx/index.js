@@ -1,13 +1,16 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useState, useEffect } from "react";
 
 /// React router dom
-import {  Routes, Route, Outlet, Router  } from "react-router-dom";
+import {  Routes, Route, Outlet, useNavigate  } from "react-router-dom";
 
 /// Css
 //import "swiper/css";
 import "./index.css";
 import "./chart.css";
 import "./step.css";
+
+/// Access Control
+import { hasGoldTogoAccess, getInitialCountry as getInitialCountryFromAccess, canAccessFeature } from "../services/AccessControl";
 
 /// Layout
 import Nav from "./layouts/nav";
@@ -32,13 +35,11 @@ import Theme4 from './components/Dashboard/demo/Theme4';
 import Theme5 from './components/Dashboard/demo/Theme5';
 import Theme6 from './components/Dashboard/demo/Theme6';
 
-
 //Content
 import Content from './components/Cms/Content';
 import Menu from './components/Cms/Menu';
 import EmailTemplate from './components/Cms/EmailTemplate';
 import Blog from './components/Cms/Blog';
-
 
 //Ticket
 import CreateTicket from './components/Ticket/CreateTicket';
@@ -144,39 +145,97 @@ import Miners from "./pages/Locations/Miners";
 import SummaryReport from "./pages/SummaryReport";
 import Company from "./pages/Company";
 import Exports from "./pages/Events/Exports";
+import Tags from "./pages/Events/Tags";
 import Tracking from "./pages/Events/Tracking";
 import ProductionSummary from "./pages/ProductionSummary";
 import Companies from "./pages/Companies";
 import Suppliers from "./pages/Suppliers";
+import Systemhealth from "./pages/Systemhealth";
 import Mines from "./pages/Locations/Mines";
 import Kyc from "./pages/InnerPages/Kyc";
 import Export from "./pages/InnerPages/Export";
 import ExportA from "./pages/InnerPages/ExportA";
 import Mine from "./pages/InnerPages/Mine";
 import Assessment from "./pages/InnerPages/Assessment";
+import PurchaseWrapper from "./pages/PurchaseWrapper";
 
 const Markup = (props) => {
   const { menuToggle } = useContext(ThemeContext);
+  const navigate = useNavigate();
+  
+  // Get initial country based on user type and access level
+  const getInitialCountry = () => {
+    const user = JSON.parse(localStorage.getItem(`_authUsr`) || '{}');
+    const storedCountry = localStorage.getItem(`_country`);
+    
+    // Gold_Togo users are ALWAYS locked to Togo
+    if (hasGoldTogoAccess(user) || user?.access === 'Gold_Togo') {
+      localStorage.setItem('_country', 'Togo');
+      localStorage.setItem('_dash', 'gold');
+      return 'Togo';
+    }
+    
+    const userType = user?.type;
+    
+    // DRC-specific investors
+    if (userType === 'investor_drc' || userType === 'buyers_drc') {
+      return 'DRC';
+    }
+    
+    return storedCountry || 'Rwanda';
+  };
+  
   const [language, setLanguage] = useState(localStorage.getItem('_lang') || 'en');
-  const [country, setCountry] = useState(localStorage.getItem('_country') || 'Rwanda');
+  const [country, setCountry] = useState(getInitialCountry());
+
+  // Enforce country and access level constraints
+  useEffect(() => {
+    const user = JSON.parse(localStorage.getItem(`_authUsr`) || '{}');
+    
+    // Force Gold_Togo users to Togo
+    if (hasGoldTogoAccess(user) || user?.access === 'Gold_Togo') {
+      if (country !== 'Togo') {
+        setCountry('Togo');
+        localStorage.setItem('_country', 'Togo');
+      }
+      if (localStorage.getItem('_dash') !== 'gold') {
+        localStorage.setItem('_dash', 'gold');
+      }
+      return;
+    }
+    
+    // Force DRC investors to DRC
+    const userType = user?.type;
+    if ((userType === 'investor_drc' || userType === 'buyers_drc') && country !== 'DRC') {
+      setCountry('DRC');
+      localStorage.setItem('_country', 'DRC');
+    }
+  }, []);
 
   const changeLanguage = (newLang) => {
     setLanguage(newLang);
     localStorage.setItem('_lang', newLang); 
   };
+  
   const changeCountry = (newCountry) => {
-    setCountry(newCountry);
-    localStorage.setItem('_country', newCountry);
+    if (newCountry !== country) {
+      setCountry(newCountry);
+      localStorage.setItem('_country', newCountry);
+      navigate('/overview');
+    }
   };
+  
   const allroutes = [
     /// Dashboard
     { url: "/", component:<Home key={language} language={language}  country={country}/>  },
     { url: 'overview', component: <Home key={language} language={language}  country={country} /> },
     { url: 'companies', component: <Companies/> },
-    { url: 'company/:id', component: <Company key={language} language={language}/> },
+     { url: 'Systemhealth', component: <Systemhealth  language={language}/> },
+    { url: 'company/:id', component: <Company key={language} language={language} country={country}/> },
     { url: 'mines/:id', component: <Mine key={language} language={language}/> },
-    { url: 'Kyc/:id', component: <Kyc key={language} language={language} /> },
+    { url: 'Kyc/:id', component: <Kyc key={language} language={language} country={country} /> },
     { url: 'users', component: <Users/> },
+    {url: 'Tags', component: <Tags key={language} language={language} country={country}/> },
 	  { url: 'incidents', component: <Incidents/> },
 	  { url: 'exports', component: <Exports key={language} language={language} country={country}/> },
     { url: 'time-tracking', component: <Tracking key={language} language={language} country={country}/> },
@@ -191,7 +250,14 @@ const Markup = (props) => {
 	  { url: 'villages', component: <Villages/> },
 	  { url: 'miners', component: <Miners/> },
 	  { url: 'suppliers', component: <Suppliers/> },
-	  { url: 'knowledge', component: <DDSystems key={language} language={language}/> },
+	  { url: 'knowledge', component: <DDSystems key={language} language={language} country={country}/> },
+    // Purchase module - Routes to appropriate component based on access level
+    // Gold access: Uses Purchase.js (Togo trace reports)
+    // 3ts access: Uses Purchase_3ts.js (DRC standard purchases)
+    {
+      url: 'purchase', 
+      component: <PurchaseWrapper key={language} language={language} country={country}/>
+    },
     { url: 'dashboard-light', component: <DashboardLight/> },
 	  { url: 'event-list', component: <EventList/> },
 	  { url: 'event', component: <EventPage/> },
@@ -224,7 +290,6 @@ const Markup = (props) => {
 
     //Reports
     {url:'reports/:type', component:<Reports key={language} language={language} country={country}/> },
-
 
     /// Apps
     { url: "profile", component: <AppProfile /> },
@@ -319,41 +384,8 @@ const Markup = (props) => {
   let pagePath = path.split("-").includes("page");
   return (
     <>
-      {/* <div
-        id={`${!pagePath ? "main-wrapper" : ""}`}
-        className={`${!pagePath ? "show" : "mh100vh"}  ${
-          menuToggle ? "menu-toggle" : ""
-        }`}
-      >
-        {!pagePath && <Nav />}
-
-        <div className={`${!pagePath ? "content-body" : ""}`}>
-          <div
-            className={`${!pagePath ? "container-fluid" : ""}`}
-            style={{ minHeight: window.screen.height - 60 }}
-          >
-            <Switch>
-              {routes.map((data, i) => (
-                <Route
-                  key={i}
-                  exact
-                  path={`/${data.url}`}
-                  component={data.component}
-                />
-              ))}
-            </Switch>
-          </div>
-        </div>
-        {!pagePath && <Footer />}
-      </div> */}
       <Routes>
-          {/* <Route path='page-lock-screen' element= {<LockScreen />} />
-          <Route path='page-error-400' element={<Error400/>} />
-          <Route path='page-error-403' element={<Error403/>} /> */}
-          {/* <Route path='*' element={<Error404/>} /> */}
-          {/* <Route path='page-error-500' element={<Error500/>} />
-          <Route path='page-error-503' element={<Error503/>} /> */}
-          <Route path="/"  element={<MainLayout language={language} onLanguageChange={changeLanguage}   onCountryChange={changeCountry} />} > 
+          <Route path="/"  element={<MainLayout language={language} onLanguageChange={changeLanguage} country={country} onCountryChange={changeCountry} />} > 
               {allroutes.map((data, i) => (
                 <Route
                   key={i}
@@ -363,20 +395,19 @@ const Markup = (props) => {
                     language: language,
                     country: country 
                   })}
-
                 >
                 </Route>
               ))}
           </Route>
       </Routes>
-      {/* <Setting /> */}
-	  <ScrollToTop />
+      <ScrollToTop />
     </>
   );
 };
 
 function MainLayout({ language, onLanguageChange, country, onCountryChange }){
   const { menuToggle, sidebariconHover } = useContext(ThemeContext);
+
   return (
     <div id="main-wrapper" className={`show ${sidebariconHover ? "iconhover-toggle": ""} ${ menuToggle ? "menu-toggle" : ""}`}>  
       <Nav 

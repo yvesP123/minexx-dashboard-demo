@@ -26,7 +26,8 @@ export const translations = {
         PercentageOwned:"Percentage Owned",
         Address:"Address",
         View:"View National ID",
-        Nobeneficial:"No beneficial owner(s) information/details."
+        Nobeneficial:"No beneficial owner(s) information/details.",
+        Incident:"Incindent",
       // Add more translations as needed
     },
     fr: {
@@ -44,6 +45,7 @@ export const translations = {
         CompanyType :" Type d'entreprise",
         Action:"Actien",
         Attachment: 'Document/Pièce jointe',
+        Incident:"Incident",
         Next: 'Suivant',
         Previous: 'Précédent',
         Action: 'Action',

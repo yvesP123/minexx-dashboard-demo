@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import MetalPricesCandlestickChart from './MetalPricesCandlestickChart';
 
-const MetalPricesChart = ({ data }) => {
+const MetalPricesChart = ({ data,country}) => {
   return (
     <div className="card-body">
-      <MetalPricesCandlestickChart data={data} />
+      <MetalPricesCandlestickChart data={data} country={country} />
     </div>
   );
 };

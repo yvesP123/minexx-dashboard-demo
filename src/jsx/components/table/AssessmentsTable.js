@@ -3,9 +3,12 @@ import React, { useEffect, useRef, useState } from "react";
 import { icon } from '@fortawesome/fontawesome-svg-core/import.macro'
 import { Link, useNavigate } from "react-router-dom";
 import { Accordion, Modal } from "react-bootstrap";
+import { toast } from 'react-toastify';
 import { translations } from '../../pages/Locations/MinesTranslation';
+import axiosInstance from "../../../services/AxiosInstance";
+import { baseURL_ } from "../../../config";
 
-const AssessmentsTable = ({ assessments, headers,language}) => {
+const AssessmentsTable = ({ assessments, headers,language,user,id}) => {
   const [data, setData] = useState(
     document.querySelectorAll("#allreview tbody tr")
   );
@@ -27,6 +30,9 @@ const AssessmentsTable = ({ assessments, headers,language}) => {
 
   const [assessment, setassessment] = useState()
   const [test, settest] = useState(0);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [confirmAction, setConfirmAction] = useState(null);
+  const [selectedAssessmentId, setSelectedAssessmentId] = useState(null);
 
   // Active data
   const chageData = (frist, sec) => {
@@ -38,6 +44,7 @@ const AssessmentsTable = ({ assessments, headers,language}) => {
       }
     }
   };
+  
   const t = (key) => {
     if (!translations[language]) {
       console.warn(`Translation for language "${language}" not found`);
@@ -46,6 +53,50 @@ const AssessmentsTable = ({ assessments, headers,language}) => {
     return translations[language][key] || key;
   };
 
+  const openConfirmModal = (action, assessmentId) => {
+    setConfirmAction(action);
+    setSelectedAssessmentId(assessmentId);
+    setShowConfirmModal(true);
+  };
+
+  const handleConfirm = async () => {
+    if (confirmAction === 'approve') {
+      await handleApprove(selectedAssessmentId);
+    } else if (confirmAction === 'disapprove') {
+      await handledisapprove(selectedAssessmentId);
+    }
+    setShowConfirmModal(false);
+    setConfirmAction(null);
+    setSelectedAssessmentId(null);
+  };
+
+  const handleCancel = () => {
+    setShowConfirmModal(false);
+    setConfirmAction(null);
+    setSelectedAssessmentId(null);
+  };
+
+  const handleApprove = async(assessmentId) => {
+    try {
+      const response = await axiosInstance.post(`${baseURL_}assessments/mine/approve/${assessmentId}`);
+      toast.success(response.data.message || 'Assessment approved successfully');
+      // Optionally refresh assessments data here
+    } catch (error) {
+      console.log('Something wrong', error);
+      toast.error('Failed to approve assessment');
+    }
+  };
+
+  const handledisapprove = async(assessmentId) => {
+    try {
+      const response = await axiosInstance.delete(`${baseURL_}assessments/mine/disapprove/${assessmentId}`);
+      toast.success(response.data.message || 'Assessment disapproved successfully');
+      // Optionally refresh assessments data here
+    } catch (error) {
+      console.log('Something wrong', error);
+      toast.error('Failed to disapprove assessment');
+    }
+  }
 
   const viewAssessment = (item)=>{
     localStorage.setItem('assessment', JSON.stringify(item))
@@ -55,12 +106,11 @@ const AssessmentsTable = ({ assessments, headers,language}) => {
   // use effect
   useEffect(() => {
     setData(document.querySelectorAll("#allreview tbody tr"));
-   // chackboxFun();
-  }, [ assessments,language ]);
-
+  }, [ assessments,language,user,id ]);
 
   // Active pagginarion
   activePag.current === 0 && chageData(0, sort);
+  
   // paggination
   let paggination = Array(Math.ceil(data.length / sort))
     .fill()
@@ -75,6 +125,30 @@ const AssessmentsTable = ({ assessments, headers,language}) => {
 
   return (
     <div id="All" className="tab-pane">
+      {/* Confirmation Modal */}
+      <Modal show={showConfirmModal} onHide={handleCancel} centered>
+        <Modal.Header closeButton>
+          <Modal.Title>Confirm Action</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <p>
+            Are you sure you want to {confirmAction === 'approve' ? 'approve' : 'disapprove'} this assessment?
+          </p>
+        </Modal.Body>
+        <Modal.Footer>
+          <button onClick={handleCancel} className="btn btn-secondary">
+            Cancel
+          </button>
+          <button 
+            onClick={handleConfirm} 
+            className={`btn ${confirmAction === 'approve' ? 'btn-primary' : 'btn-danger'}`}
+          >
+            Confirm
+          </button>
+        </Modal.Footer>
+      </Modal>
+
+      {/* Assessment Details Modal */}
       <Modal size="xl" show={assessment} onEscapeKeyDown={()=>setassessment(null)}>
         <Modal.Header>
             <h3>{assessment ? assessment[25] : `--`}</h3>
@@ -156,6 +230,7 @@ const AssessmentsTable = ({ assessments, headers,language}) => {
         <button onClick={()=>setassessment(null)} className="btn btn-sm btn-warning">Close</button>
         </Modal.Footer>
       </Modal>
+
       <div className="table-responsive table-hover fs-14">
         <div id="allreview" className="dataTables_wrapper no-footer ">
           <table
@@ -191,6 +266,11 @@ const AssessmentsTable = ({ assessments, headers,language}) => {
                 >
                   {("Action")}
                 </th>
+                {user.type === 'investor' && user.email === "info@minexx.co" && (
+                  <th className="sorting">
+                    {("Status")}
+                  </th>
+                )}
               </tr>
             </thead>
 
@@ -215,6 +295,32 @@ const AssessmentsTable = ({ assessments, headers,language}) => {
                     <Link to="" title="View Assessment Report" className="btn btn-primary light btn-sm px-4"><FontAwesomeIcon icon={icon({ name: 'eye' })} /></Link>
                   </div>
                 </td>
+                {user.type === 'investor' && user.email === "info@minexx.co" && (
+                  <td>
+                    <div className="d-flex gap-2">
+                      {doc.status === 'Approved' ? (
+                        <span className="badge badge-success badge-lg">Approved</span>
+                      ) : doc.status === 'Disapproved' ? (
+                        <span className="badge badge-danger badge-lg">Disapproved</span>
+                      ) : (
+                        <>
+                          <button 
+                            className="btn btn-primary btn-sm" 
+                            onClick={() => openConfirmModal('approve', id)}
+                          >
+                            Approve
+                          </button>
+                          <button 
+                            className="btn btn-danger btn-sm" 
+                            onClick={() => openConfirmModal('disapprove', id)}
+                          >
+                            Disapprove
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  </td>
+                )}
               </tr>)}
             </tbody>
           </table>

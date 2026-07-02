@@ -4,7 +4,7 @@ import { ThemeContext } from "../../context/ThemeContext"
 import { ListGroup } from "react-bootstrap"
 import { translations } from "./DDSystemstranslation"
 
-const DDSystems = ({language}) => {
+const DDSystems = ({language, country}) => {
     const { changeTitle } = useContext(ThemeContext)
     const user = JSON.parse(localStorage.getItem(`_authUsr`))
     
@@ -15,7 +15,6 @@ const DDSystems = ({language}) => {
         }
         return translations[language][key] || key;
     };
-    //  we keep kyc form , platform grievance,supplier code of conduct
 
     const systems = {
         kyc: {
@@ -60,7 +59,8 @@ const DDSystems = ({language}) => {
         },
     }
 
-    const knowledgeBase = user.type === 'buyer' || user.type === 'investor' ? [
+    // Libya-specific knowledge base with only 3 documents
+    const libyaKnowledgeBase = [
         {
             title: 'KYCForm',
             to: 'kyc',
@@ -69,19 +69,14 @@ const DDSystems = ({language}) => {
             title: 'PlatformGrievanceMechanisms',
             to: 'grievance',
         },
-        // {
-        //     title: 'TraceabilityGuidefor3TGOperators',
-        //     to: 'traceability-guide',
-        // },
         {
             title: 'SupplierCodeofConduct',
             to: 'code-of-conduct',
-        },
-        // {
-        //     title: 'RwandaInternalSupplement',
-        //     to: 'internal-supplement-rw',
-        // }
-    ] : [
+        }
+    ];
+
+    // Standard knowledge base for buyers/investors
+    const buyerKnowledgeBase = [
         {
             title: 'KYCForm',
             to: 'kyc',
@@ -90,45 +85,103 @@ const DDSystems = ({language}) => {
             title: 'PlatformGrievanceMechanisms',
             to: 'grievance',
         },
-        // {
-        //     title: 'TraceabilityGuidefor3TGOperators',
-        //     to: 'traceability-guide',
-        // },
-        // {
-        //     title: 'RiskManagementPlan',
-        //     to: 'risk-management',
-        // },
-        // {
-        //     title: 'ShipmentConformanceNotice',
-        //     to: 'shipment-conformance',
-        // },
+        {
+            title: 'TraceabilityGuidefor3TGOperators',
+            to: 'traceability-guide',
+        },
         {
             title: 'SupplierCodeofConduct',
             to: 'code-of-conduct',
         },
         // {
-        //     title: 'OperatorOnboarding',
-        //     to: 'operator-onboarding',
-        // },
-        // {
-        //     title: 'KnowYourCounterpartForm',
-        //     to: 'asm',
-        // },
-        // {
-        //     title: 'TraceDueDiligenceProgrammeIntroduction',
-        //     to: 'trace-due-diligence',
-        // },
+        //     title: 'RwandaInternalSupplement',
+        //     to: 'internal-supplement-rw',
+        // }
+    ];
+      const buyerKnowledgeBaseDrc = [
+        {
+            title: 'KYCForm',
+            to: 'kyc',
+        },
+        {
+            title: 'PlatformGrievanceMechanisms',
+            to: 'grievance',
+        },
+        {
+            title: 'TraceabilityGuidefor3TGOperators',
+            to: 'traceability-guide',
+        },
+        {
+            title: 'SupplierCodeofConduct',
+            to: 'code-of-conduct',
+        },
+        
+    ];
+    
+    // Standard knowledge base for other user types
+    const standardKnowledgeBase = [
+        {
+            title: 'KYCForm',
+            to: 'kyc',
+        },
+        {
+            title: 'PlatformGrievanceMechanisms',
+            to: 'grievance',
+        },
+        {
+            title: 'TraceabilityGuidefor3TGOperators',
+            to: 'traceability-guide',
+        },
+        {
+            title: 'RiskManagementPlan',
+            to: 'risk-management',
+        },
+        {
+            title: 'ShipmentConformanceNotice',
+            to: 'shipment-conformance',
+        },
+        {
+            title: 'SupplierCodeofConduct',
+            to: 'code-of-conduct',
+        },
+        {
+            title: 'OperatorOnboarding',
+            to: 'operator-onboarding',
+        },
+        {
+            title: 'KnowYourCounterpartForm',
+            to: 'asm',
+        },
+        {
+            title: 'TraceDueDiligenceProgrammeIntroduction',
+            to: 'trace-due-diligence',
+        },
         // {
         //     title: 'RwandaInternalSupplement',
         //     to: 'internal-supplement-rw',
         // }
-    ]
+    ];
+
+    // Determine which knowledge base to use
+    let knowledgeBase;
+    if (country === 'Libya') {
+        
+        knowledgeBase = libyaKnowledgeBase;
+    } else if (user.type === 'buyer' || user.type === 'investor') {
+        knowledgeBase = buyerKnowledgeBase;
+    }
+    else if (user.type === 'buyers_drc' || user.type === 'investor_drc') {
+        knowledgeBase = buyerKnowledgeBaseDrc;
+    }
+     else { 
+        knowledgeBase = standardKnowledgeBase;
+    }
 
     const [content, setcontent] = useState(`kyc`)
 
     useEffect(() => {
         changeTitle(`${t(systems[content]?.title)} | Minexx`)
-    }, [content, language])
+    }, [content, language, country])
 
     return(
         <>

@@ -11,7 +11,7 @@ import { Turtle, CheckCircle, X, XCircle } from 'lucide-react';
 import { translations } from '../Events/Exporttranslation';
 
 // Updated DocumentsList component with document availability checking
-const DocumentsList = ({ documents, dashboard, exportId, language, country }) => {
+const DocumentsList = ({ documents, dashboard, exportId, language, country,user }) => {
     // Individual loading states for each document
     const [documentLoading, setDocumentLoading] = useState({});
     // Store file IDs separately, only fetch when needed
@@ -34,7 +34,7 @@ const DocumentsList = ({ documents, dashboard, exportId, language, country }) =>
       let result = country.trim();
       
       if (result.toLowerCase() === 'rwanda') {
-          return 'Country';
+          return '.Rwanda';
       } else {
           return result.replace(/^\.+|\.+$/g, '');
       }
@@ -43,63 +43,109 @@ const DocumentsList = ({ documents, dashboard, exportId, language, country }) =>
     // Map field names based on document index
     const getFieldName = (index) => {
       // This should match your uploads array mapping in the main component
-      const fieldNames = dashboard === '3ts' ? [
-        'provisionalInvoice',
-        'cargoReceipt',
-        'exporterApplicationDocument',
-        'scannedExportDocuments',
-        'asiDocument',
-        'packingReport',
-        'rraExportDocument',
-        'rmbExportDocument',
-        'otherDocument',
-        'warehouseCert',
-        'insuranceCert',
-        'billOfLanding',
-        'c2',
-        'mineSheets',
-        'processingSheets',
-        'customsDeclaration',
-        'tagList',           
-        'transporterDocument'
-      ] : [
-        'provisionalInvoice',
-        'packingReport',
-        'note',
-        'scannedExportDocuments',
-        'otherDocument',
-        'customsDeclaration',
-        'exporterApplicationDocument',
-      ];
-      
-      return fieldNames[index] || null;
+      if (dashboard === '3ts' && country === 'Libya') {
+        const fieldNames = [
+          'invoice',
+          'loadingPermission',
+          'assayReport',
+          'loadingCertificate',
+          'slopCertificate',
+          'ullageReport',
+          'obqReport',
+          'bunkerReport',
+          'bol',
+          'cargoManifest',
+          'certificateOfOrigin',
+          'veritas'
+        ];
+        return fieldNames[index] || null;
+      } else if (dashboard === '3ts') {
+        const fieldNames = [
+          'provisionalInvoice',
+          'cargoReceipt',
+          'exporterApplicationDocument',
+          'scannedExportDocuments',
+          'asiDocument',
+          'packingReport',
+          'rraExportDocument',
+          'rmbExportDocument',
+          'otherDocument',
+          'warehouseCert',
+          'insuranceCert',
+          'billOfLanding',
+          'c2',
+          'mineSheets',
+          'processingSheets',
+          'customsDeclaration',
+          'tagList',           
+          'transporterDocument'
+        ];
+        return fieldNames[index] || null;
+      } else {
+        const fieldNames = [
+          'provisionalInvoice',
+          'packingReport',
+          'note',
+          'scannedExportDocuments',
+          'otherDocument',
+          'customsDeclaration',
+          'exporterApplicationDocument',
+        ];
+        return fieldNames[index] || null;
+      }
     };
+    const getDocumentInfo = (fieldName) => {
+  const dbFieldName = getDbFieldName(fieldName);
+  return availableDocuments.find(doc => 
+    doc.fieldName === fieldName || 
+    doc.fieldName === dbFieldName || 
+    doc.dbFieldName === fieldName || 
+    doc.dbFieldName === dbFieldName
+  );
+};
     
     // Map field names to dbFieldNames for better matching with available documents
     const getDbFieldName = (fieldName) => {
-      const mappings = {
-        'provisionalInvoice': 'ProvisionalInvoice',
-        'cargoReceipt': 'CargoReceipt',
-        'exporterApplicationDocument': 'ExporterApplicationDocument',
-        'scannedExportDocuments': 'ScannedExportDocuments',
-        'asiDocument': 'AsiDocument',
-        'packingReport': 'PackingReport',
-        'rraExportDocument': 'RraExportDocument',
-        'rmbExportDocument': 'RmbExportDocument',
-        'otherDocument': 'OtherDocument',
-        'warehouseCert': 'WarehouseCert',
-        'insuranceCert': 'InsuranceCert',
-        'billOfLanding': 'BillOfLanding',
-        'c2': 'C2',
-        'mineSheets': 'MineSheets',
-        'processingSheets': 'ProcessingSheets',
-        'customsDeclaration': 'CustomsDeclaration',
-        'tagList': 'TagList',
-        'transporterDocument': 'TransporterDocument',
-        'note': 'Note'
-      };
-      
-      return mappings[fieldName] || fieldName;
+      if (country === 'Libya' && dashboard === '3ts') {
+        const mappings = {
+          'invoice': 'Invoice',
+          'loadingPermission': 'Loading Permission',
+          'assayReport': 'Assay Report from Refinery',
+          'loadingCertificate': 'Loading Certificate',
+          'slopCertificate': 'Slop Certificate',
+          'ullageReport': 'Ullage Report',
+          'obqReport': 'OBQ Report',
+          'bunkerReport': 'Bunker inspection Report',
+          'bol': 'BOL',
+          'cargoManifest': 'Cargo Manifest',
+          'certificateOfOrigin': 'Certificate of Origin',
+          'veritas': 'Testing report from Veritas'
+        };
+        return mappings[fieldName] || fieldName;
+      } else {
+        const mappings = {
+          'provisionalInvoice': 'ProvisionalInvoice',
+          'cargoReceipt': 'CargoReceipt',
+          'exporterApplicationDocument': 'ExporterApplicationDocument',
+          'scannedExportDocuments': 'ScannedExportDocuments',
+          'asiDocument': 'AsiDocument',
+          'packingReport': 'PackingReport',
+          'rraExportDocument': 'RraExportDocument',
+          'rmbExportDocument': 'RmbExportDocument',
+          'otherDocument': 'OtherDocument',
+          'warehouseCert': 'WarehouseCert',
+          'insuranceCert': 'InsuranceCert',
+          'billOfLanding': 'BillOfLanding',
+          'c2': 'C2',
+          'mineSheets': 'MineSheets',
+          'processingSheets': 'ProcessingSheets',
+          'customsDeclaration': 'CustomsDeclaration',
+          'tagList': 'TagList',
+          'transporterDocument': 'TransporterDocument',
+          'note': 'Note'
+        };
+        return mappings[fieldName] || fieldName;
+      }
     };
   
     // Fetch available documents when component mounts
@@ -145,7 +191,7 @@ const DocumentsList = ({ documents, dashboard, exportId, language, country }) =>
           }
         } catch (error) {
           console.error('Error fetching available documents:', error);
-          toast.error(error.response?.data?.message || `${t("ErrorFetchingDocuments")}`);
+          console.log(error.response?.data?.message || `${t("ErrorFetchingDocuments")}`);
         } finally {
           setLoadingAvailability(false);
         }
@@ -171,7 +217,7 @@ const DocumentsList = ({ documents, dashboard, exportId, language, country }) =>
   
     // Get file ID for a document - always use /exportsfield endpoint
     const getFileId = async (index, fieldName) => {
-      console.log(`getFileId called for index ${index}, fieldName ${fieldName}, exportId ${exportId}`);
+      console.log(`getFileId called for index ${index}, fieldName ${fieldName}, exportId ${exportId},`);
       
       // If we already have the file ID from a previous call, use it
       if (fileIds[fieldName] && fileIds[fieldName] !== undefined) {
@@ -219,7 +265,7 @@ const DocumentsList = ({ documents, dashboard, exportId, language, country }) =>
           return fileContent;
         } else {
           console.warn(`Document not found for ${fieldName}:`, response.data);
-          toast.error(`${t("DocumentNotFound")}: ${documents[index]}`);
+          console.log(`${t("DocumentNotFound")}: ${documents[index]}`);
           
           setFileIds(prev => ({
             ...prev,
@@ -231,7 +277,7 @@ const DocumentsList = ({ documents, dashboard, exportId, language, country }) =>
       } catch (error) {
         console.error('Error fetching file ID:', error);
         
-        toast.error(error.response?.data?.message || `${t("ErrorFetchingDocument")}`);
+        console.log(error.response?.data?.message || `${t("ErrorFetchingDocument")}`);
         
         setFileIds(prev => ({
           ...prev,
@@ -246,7 +292,54 @@ const DocumentsList = ({ documents, dashboard, exportId, language, country }) =>
         }));
       }
     };
+    //handle Approve Document
+ const handleApprove = async (fieldName, index) => {
+  setDocumentLoading(prev => ({
+    ...prev,
+    [index]: true
+  }));
+  
+  try {
+    const response = await axiosInstance.post(
+      `${baseURL_}approve/exportfield/${exportId}?field=${fieldName}`,
+      {}
+    );
+    toast.success("Document approved successfully");
     
+    // Force a full page reload after a short delay
+    setTimeout(() => {
+      window.location.reload();
+    }, 1000);
+    
+  } catch (error) {
+    console.log(error.response?.data?.message || "Something went wrong");
+    console.error(`Error approving document for ${fieldName}:`, error);
+    
+    setDocumentLoading(prev => ({
+      ...prev,
+      [index]: false
+    }));
+  }
+};
+
+const handleDisapprove = async (fieldName, index) => {
+  setDocumentLoading(prev => ({
+    ...prev,
+    [index]: true
+  }));
+  
+  try {
+    await axiosInstance.post(
+      `disapprove/exportfield/${exportId}?field=${fieldName}&country=${normalizedCountry}` // ← removed baseURL_
+    );
+    toast.success("Document disapproved successfully");
+    setTimeout(() => window.location.reload(), 1000);
+  } catch (error) {
+    toast.error(error.response?.data?.message || "Something went wrong");
+    console.error(`Error disapproving document for ${fieldName}:`, error);
+    setDocumentLoading(prev => ({ ...prev, [index]: false }));
+  }
+};
     // Handle view document action
     const handleViewDocument = async (index) => {
       const fieldName = getFieldName(index);
@@ -290,6 +383,7 @@ const DocumentsList = ({ documents, dashboard, exportId, language, country }) =>
         {documents.map((document, index) => {
           const fieldName = getFieldName(index);
           const documentAvailable = isDocumentAvailable(fieldName);
+           const documentInfo = getDocumentInfo(fieldName); // Get full document info
           
           return (
             <ListGroup.Item key={index} className="d-flex justify-content-between align-items-center">
@@ -303,29 +397,49 @@ const DocumentsList = ({ documents, dashboard, exportId, language, country }) =>
                   <div className="spinner-border spinner-border-sm text-primary" role="status">
                     <span className="sr-only">Loading...</span>
                   </div>
-                ) : documentAvailable ? (
-                  <>
-                    <button
-                      className="btn btn-info"
-                      onClick={() => handleViewDocument(index)}
-                    >
-                      {t("View")}
-                    </button>
-                    <button
-                      className="btn btn-primary"
-                      onClick={() => handleDownloadDocument(index)}
-                    >
-                      {t("Download")}
-                    </button>
-                  </>
-                ) : (
-                  <button
-                    className="btn btn-danger"
-                    disabled
-                  >
-                    {t("Missing")}
-                  </button>
+                  ) : documentAvailable ? (
+              <>
+                <button
+                  className="btn btn-info"
+                  onClick={() => handleViewDocument(index)}
+                >
+                  {t("View")}
+                </button>
+                <button
+                  className="btn btn-primary"
+                  onClick={() => handleDownloadDocument(index)}
+                >
+                  {t("Download")}
+                </button>
+                {user.type === "investor" && user.email === "info@minexx.co" && (
+                  documentInfo?.status !== "Approved" ? (
+                    <>
+                      <button
+                        className="btn btn-secondary"
+                        onClick={() => handleApprove(fieldName,index)}
+                      >
+                        {t("Approve")}
+                      </button>
+                      <button
+                        className="btn btn-danger"
+                        onClick={() => handleDisapprove(fieldName,index)}
+                      >
+                        {t("Disapprove")}
+                      </button>
+                    </>
+                  ) : (
+                    <span className="badge bg-success">{t("Approved")}</span>
+                  )
                 )}
+              </>
+            ) : (
+              <button
+                className="btn btn-danger"
+                disabled
+              >
+                {t("Missing")}
+              </button>
+            )}
               </div>
             </ListGroup.Item>
           );
@@ -359,13 +473,27 @@ const Export = ({ country, language }) => {
         let result = country.trim();
         
         if (result.toLowerCase() === 'rwanda') {
-            return 'Country';
+            return '.Rwanda';
         } else {
             return result.replace(/^\.+|\.+$/g, '');
         }
     }, [country]);
 
-    const documents = access === "3ts" ? [
+    const documents = access === "3ts" ? (
+      country === "Libya" ? [
+        t("Invoice"),
+        t("LoadingPermission"),
+        t("AssayReportFromRefinery"),
+        t("LoadingCertificate"),
+        t("SlopCertificate"),
+        t("UllageReport"),
+        t("OBQReport"),
+        t("BunkerInspectionReport"),
+        t("BillOfLading"),
+        t("CargoManifest"),
+        t("CertificateOfOrigin"),
+        t("TestingReportFromVeritas")
+      ] : [
         t("ProvisionalInvoice"),
         t("FreightForwarderCargoReceipt"),
         t("OtherExporterDocuments"),
@@ -381,17 +509,18 @@ const Export = ({ country, language }) => {
         t("C2Form"),
         t("MineSheets"),
         t("ProcessingSheets"),
-        t("RRACustomsDeclaration"),
+      (country !== "DRC" ?  t("RRACustomsDeclaration") : t("DGDACustomsDeclaration")),
         t("TagList"),
         t("OtherTransporterDocument"),
-    ] : [
-        t("ExporterInvoice"),
-        t("PackingList"),
-        t("NonNarcoticsNote"),
-        t("EssayReport"),
-        t("ProofOfPayment"),
-        t("CopyOfCustomsDeclaration"),
-        t("ExportApproval")
+      ]
+    ) : [
+      t("ExporterInvoice"),
+      t("PackingList"),
+      t("NonNarcoticsNote"),
+      t("EssayReport"),
+      t("ProofOfPayment"),
+      t("CopyOfCustomsDeclaration"),
+      t("ExportApproval")
     ];
     
     let eid = null;
@@ -417,10 +546,10 @@ const Export = ({ country, language }) => {
                 if (err.response.code === 403) {
                     dispatch(Logout(navigate));
                 } else {
-                    toast.warn(err.response.message);
+                    console.log(err.response.message);
                 }
             } catch (e) {
-                toast.error(err.message);
+                console.log(err.message);
             }
         } finally {
             setLoading(false);
@@ -510,7 +639,13 @@ const Export = ({ country, language }) => {
                                                                 { export_?.date ?
                                                                     <>
                                                                         <h4 className="text-primary mb-2 mt-4">{t("ExportationDate")}</h4>
-                                                                        <Link className="text-black">{export_?.date || `--`}</Link>
+                                                                        <Link className="text-black">
+                                                                        {export_?.date
+                                                                          ? (typeof export_.date.toDate === 'function'
+                                                                              ? export_.date.toDate().toLocaleDateString()
+                                                                              : export_.date)
+                                                                          : '--'}
+                                                                      </Link>
                                                                     </>
                                                                 : <></> }
                                                             
@@ -682,6 +817,7 @@ const Export = ({ country, language }) => {
                                                 <DocumentsList 
                                                     documents={documents} 
                                                     dashboard={access} 
+                                                    user={user}
                                                     exportId={id} 
                                                     language={language}
                                                     country={country}

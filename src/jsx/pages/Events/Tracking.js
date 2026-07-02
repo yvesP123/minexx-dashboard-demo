@@ -127,7 +127,7 @@ const Tracking = ({ language, country }) => {
   // Function to check if all tasks in a category are completed
   const isCategoryCompleted = (category) => {
     if (!tracking) return false;
-    
+      
     const tasks = getTasksForCategory(category);
     if (tasks.length === 0) return false;
     

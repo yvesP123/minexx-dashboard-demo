@@ -17,6 +17,9 @@ import TrendingAssets from './TrendingAssets';
 import MineralsPriceTable from './MineralsPriceTable';
 import MineVolumeChart from './MineVolumeChart';
 import PricePredictionCard from './PricePredictionCard';
+import PricePredictionCardGold from './PricePredictionCardGold';
+import TotalStockDelivery from './TotalStockDelivery';
+import LiveScreenCard from './LiveScreenCard';
 
 
 const Doughnutchart = loadable(() =>
@@ -49,7 +52,8 @@ function Home({ language, country }) {
       data: {
         'TIN': {},
         'LME-TIN': {},
-        'TIN3M': {}
+        'TIN3M': {},
+        'COPPER':{}
       }
     }
   });
@@ -101,7 +105,7 @@ function Home({ language, country }) {
         if(err.response.code === 403){
           dispatch(Logout(navigate))
         }else{
-          toast.warn(err.response.message)
+          console.log(err.response.message);
         }
       }catch(e){
         console.log(err.message);
@@ -110,62 +114,62 @@ function Home({ language, country }) {
   }
 
   const loadOverview = async() => {
-    // if(user?.type !== 'minexx'){
-    //   axiosInstance.get(`${baseURL_}metals-api`).then(response=>{
-    //     setrates(response.data.rates)
-    //   })
-    // }
+    if(user?.type !== 'minexx'){
+      axiosInstance.get(`${baseURL_}metals-api`).then(response=>{
+        setrates(response.data.rates)
+      })
+    }
     let normalizedCountrys = country.trim();
             
     // Special handling for Rwanda
     if (normalizedCountrys.toLowerCase() === 'rwanda') {
         // Randomly choose one of the three formats
-         normalizedCountrys ='Country';
+         normalizedCountrys ='.Rwanda';
         // normalizedCountry = formats[Math.floor(Math.random() * formats.length)];
     } else {
         // For other countries, remove leading/trailing dots and spaces
         normalizedCountrys = normalizedCountrys.replace(/^\.+|\.+$/g, '');
     }
-    // axiosInstance.get(`${baseURL_}overview/risks`,
-    //   {
-    //     params: {
-    //         country:normalizedCountrys,
-    //       }
-    // }).then(response=>{
-    //   setincidents(response.data.risks)
-    // }).catch(err=>{
-    //   try{
-    //     if(err.response.code === 403){
-    //       dispatch(Logout(navigate))
-    //     }else{
-    //       toast.warn(err.response.message)
-    //     }
-    //   }catch(e){
-    //     toast.error(err.message)
-    //   }
-    // })
+    axiosInstance.get(`${baseURL_}overview/risks`,
+      {
+        params: {
+            country:normalizedCountrys,
+          }
+    }).then(response=>{
+      setincidents(response.data.risks)
+    }).catch(err=>{
+      try{
+        if(err.response.code === 403){
+          dispatch(Logout(navigate))
+        }else{
+          console.log(err.response.message);
+        }
+      }catch(e){
+        console.log(err.message)
+      }
+    })
 
-    // axiosInstance.get(`${baseURL_}overview/incidents`,
-    //   {
-    //     params:
-    //     {
-    //       country:normalizedCountrys,
+    axiosInstance.get(`${baseURL_}overview/incidents`,
+      {
+        params:
+        {
+          country:normalizedCountrys,
 
-    //     }
-    //   }).then(response=>{
-    //   setseries1(response.data.incidents)
-    //   settotal1(response.data.count)
-    // }).catch(err=>{
-    //   try{
-    //     if(err.response.code === 403){
-    //       dispatch(Logout(navigate))
-    //     }else{
-    //       toast.warn(err.response.message)
-    //     }
-    //   }catch(e){
-    //     toast.error(err.message)
-    //   }
-    // })
+        }
+      }).then(response=>{
+      setseries1(response.data.incidents)
+      settotal1(response.data.count)
+    }).catch(err=>{
+      try{
+        if(err.response.code === 403){
+          dispatch(Logout(navigate))
+        }else{
+          console.log(err.response.message);
+        }
+      }catch(e){
+        console.log(err.message)
+      }
+    })
     axiosInstance.get(`${baseURL_}metals-api/yearly`
     ).then(response=>{
     console.log("Mineral Data", response.data.data.data);
@@ -175,10 +179,10 @@ function Home({ language, country }) {
       if(err.response.code === 403){
         dispatch(Logout(navigate))
       }else{
-        toast.warn(err.response.message)
+        console.log(err.response.message);
       }
     }catch(e){
-      toast.error(err.message)
+      console.log(err.message)
     }
   })
     let normalizedCountry = country.trim();
@@ -186,7 +190,7 @@ function Home({ language, country }) {
     // Special handling for Rwanda
     if (normalizedCountry.toLowerCase() === 'rwanda') {
         // Randomly choose one of the three formats
-         normalizedCountry ='Country';
+         normalizedCountry ='.Rwanda';
         // normalizedCountry = formats[Math.floor(Math.random() * formats.length)];
     } else {
         // For other countries, remove leading/trailing dots and spaces
@@ -208,10 +212,10 @@ function Home({ language, country }) {
         if(err.response.code === 403){
           dispatch(Logout(navigate))
         }else{
-          toast.warn(err.response.message)
+          console.log(err.response.message);
         }
       }catch(e){
-        toast.error(err.message)
+        console.log(err.message)
       }
     })
     let normalizedCountryq = country.trim();
@@ -225,27 +229,27 @@ function Home({ language, country }) {
         // For other countries, remove leading/trailing dots and spaces
         normalizedCountryq = normalizedCountryq.replace(/^\.+|\.+$/g, '');
     }
-    // axiosInstance.get(`${baseURL_}overview/assessments`,
-    //   {
-    //     params:
-    //     {
-    //       country:normalizedCountryq,
+    axiosInstance.get(`${baseURL_}overview/assessments`,
+      {
+        params:
+        {
+          country:normalizedCountryq,
 
-    //     }
-    //   }).then(response=>{
-    //   setseries3(response.data.assessments)
-    //   settotal3(response.data.count)
-    // }).catch(err=>{ 
-    //   try{
-    //     if(err.response.code === 403){
-    //       dispatch(Logout(navigate))
-    //     }else{
-    //       toast.warn(err.response.message)
-    //     }
-    //   }catch(e){
-    //     toast.error(err.message)
-    //   }
-    // })
+        }
+      }).then(response=>{
+      setseries3(response.data.assessments)
+      settotal3(response.data.count)
+    }).catch(err=>{ 
+      try{
+        if(err.response.code === 403){
+          dispatch(Logout(navigate))
+        }else{
+          console.log(err.response.message);
+        }
+      }catch(e){
+        console.log(err.message)
+      }
+    })
   }
 
   useEffect(() => {
@@ -305,7 +309,7 @@ function Home({ language, country }) {
             </div>
           </div>
         </div>
-        { country === 'Libya' ?
+        { country === 'Libya'  ?
         <div className="col-md-8">
 
         </div>:
@@ -316,37 +320,12 @@ function Home({ language, country }) {
         }
       </div>
       
-      {/* Second row: Market Status and Minerals Price */}
-      <div className="row mt-4">
-        <div className="col-md-8">
-          <div className="card">
-            <div className="card-header align-items-start pb-0 border-0">	
-              <div>
-                <h4 className="mb-0 fs-20">Market Status</h4>
-              </div>
-            </div>
-            <MetalPricesChart data={apiData} />
-          </div>
-        </div>
-        <div className="col-md-4">
-          <MineralsPriceTable />
-        </div>
-      </div>
+      {/* Live Screen Cards - Export and Purchase Overview */}
+      <LiveScreenCard language={language} country={country} access={access} />
+
+      {/* Second row: Total Stock Delivery with Daily Metrics and Performance Chart */}
+      <TotalStockDelivery language={language} country={country} access={access}/>
       
-      {/* New row just for Price Prediction Card */}
-      <div className="row mt-4">
-        <div className="col-md-12">
-          {/* Price Prediction Card component on its own row */}
-          <PricePredictionCard language={language} />
-        </div>
-      </div>
-          
-      {/* Last row: Trending Assets section */}
-      <div className="row mt-4">
-        <div className="col-md-12">
-          <TrendingAssets data={apiData} />
-        </div>
-      </div>
      
     </Fragment>
   )

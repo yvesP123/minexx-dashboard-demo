@@ -66,7 +66,7 @@ function Login (props) {
                         <div className="mt-5">
                             <Link to={"https://minexx.co/technology"} className=" me-4">Technology</Link>
                             <Link to={"https://minexx.co/contact"} className=" me-4">Contact</Link>
-                            <Link to={"https://minexx.co"} className="">&copy; 2023 Minexx</Link>
+                            <Link to={"https://minexx.co"} className="">&copy; 2025 Minexx</Link>
                         </div>
                     </div>
                 </div>
@@ -153,11 +153,11 @@ function Login (props) {
                                   </p>
                                 </div>
                                 <div>
-                                  <p>
+                                  {/* <p>
                                   <Link className="text-primary" to="/kyc-login">
                                      Click Here to Upload Kyc Document
                                   </Link>
-                                  </p>
+                                  </p> */}
 
                                 </div>
                               </div>

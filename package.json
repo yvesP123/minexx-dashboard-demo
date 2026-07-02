@@ -1,7 +1,9 @@
 {
   "name": "minexx-dashboard",
   "version": "0.1.0",
-
+  "engines": {
+    "node": "22.x" 
+  },
   "private": true,
   "dependencies": {
     "@ckeditor/ckeditor5-build-classic": "^35.3.2",
@@ -38,7 +40,6 @@
     "lucide-react": "^0.441.0",
     "mapbox-gl": "^3.1.0",
     "moment": "^2.30.1",
-    "node-sass": "^8.0.0",
     "nouislider": "^14.7.0",
     "nouislider-react": "^3.4.1",
     "p-min-delay": "^4.0.1",
@@ -85,7 +86,7 @@
   },
   "scripts": {
     "start": "react-scripts start",
-    "build": "react-scripts build",
+    "build": "CI=false react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
     "sass": "node-sass --watch src/scss/main.scss src/css/style.css --source-map src/css/style.css.map"
