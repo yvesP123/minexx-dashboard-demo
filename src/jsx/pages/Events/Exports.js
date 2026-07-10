@@ -495,7 +495,7 @@ const Exports = ({ language, country }) => {
                                                                 </td>
                                                             )}
                                                             <td>
-                                                                <QRCodeWithPrintButton value={`https://minexx-scann-mysql.vercel.app/export/${_export?.id}/${_export?.company?.id}/?x-platform=${_export.mineral === 'Gold' ? 'gold' : '3ts'}`} />
+                                                               <QRCodeWithPrintButton value={`https://end-end-overview.vercel.app/export/${_export?.id}/${_export?.company?.id}/?x-platform=${_export.mineral === 'Gold' ? 'gold' : '3ts'}`} />
                                                             </td>
 
                                                             {/* {user.type === 'investor' && user.email === 'info@minexx.co' && (
